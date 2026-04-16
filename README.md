@@ -1,0 +1,1 @@
+Common code for AncientMC projects.

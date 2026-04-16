@@ -1,0 +1,25 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.ancientmc'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation libs.commons.compress
+    implementation libs.commons.io
+    implementation libs.guava
+    implementation libs.gson
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
