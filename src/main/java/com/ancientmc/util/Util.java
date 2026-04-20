@@ -152,6 +152,18 @@ public final class Util {
     }
 
     /**
+     * Checks if any element in the array matches the given predicate.
+     *
+     * @param array The list.
+     * @param predicate The predicate.
+     * @return {@code true} if any match in the array is found.
+     * @param <T> The array type.
+     */
+    public static <T> boolean anyMatch(final T[] array, final Predicate<T> predicate) {
+        return Arrays.stream(array).anyMatch(predicate);
+    }
+
+    /**
      * Checks if no elements in the list match the given predicate.
      *
      * @param list The list.
@@ -161,6 +173,10 @@ public final class Util {
      */
     public static <T> boolean noneMatch(final List<T> list, final Predicate<T> predicate) {
         return list.stream().noneMatch(predicate);
+    }
+
+    public static <T> boolean noneMatch(final T[] array, final Predicate<T> predicate) {
+        return Arrays.stream(array).noneMatch(predicate);
     }
 
     /**
@@ -269,7 +285,7 @@ public final class Util {
                 return LINUX;
             } else if (osName.contains("mac") || osName.contains("osx") || osName.contains("os x")) {
                 return MACOS;
-            } else if (osName.contains("windows") || osName.contains("win")) {
+            } else if (osName.contains("win")) {
                 return WINDOWS;
             } else {
                 return UNKNOWN;
