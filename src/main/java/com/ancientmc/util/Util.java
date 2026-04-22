@@ -1,5 +1,7 @@
 package com.ancientmc.util;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import org.jspecify.annotations.NonNull;
 
@@ -9,6 +11,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -45,28 +49,30 @@ public final class Util {
      * Safe getter for a conditional value. Returns the value if the condition is met, and throws an exception if the condition
      * is not met.
      *
-     * <p> This is similar to {@link Util#get(Object)}, but it is used for conditions *other* than whether or not
+     * <p> This is similar to {@link Util#get(Object)}, but it is used for conditions *other* than whether
      * the value exists, such as if the value is or is not a given data type, or (for numbers) if it's a certain size, etc. </p>
      *
-     * @param condition The boolean condition
+     * @param condition The boolean condition.
      * @param value The value.
-     * @param message The exception message thrown.
+     * @param exception The exception thrown.
      * @return The same value, if the condition is met. Throws an exception if not.
-     * @param <T> The type.
+     * @param <T> The return type.
+     * @param <X> The exception type.
      */
-    public static <T> T get(final boolean condition, final @NonNull T value, final String message) {
-        return condition ? value : elseThrow(message);
+    public static <T, X extends Throwable> T get(final boolean condition, final @NonNull T value, final X exception) {
+        return condition ? value : elseThrow(exception);
     }
 
     /**
      * Type-specific method that throws an exception. Useful for ternaries that throw if the correct conditions are not met.
      *
-     * @param message The exception message.
+     * @param exception The exception.
      * @return Nothing.
      * @param <T> The type.
+     * @param <X> The exception type.
      */
-    public static <T> T elseThrow(final String message) {
-        throw new RuntimeException(message);
+    public static <T, X extends Throwable> T elseThrow(final X exception) {
+        throw new RuntimeException(exception);
     }
 
     /**
@@ -103,24 +109,24 @@ public final class Util {
     }
 
     /**
-     * Creates a filtered stream from a list based on the given predicate.
+     * Creates a filtered stream from a collection based on the given predicate.
      * This is an intermediate method for other functions, similar to regular {@link Stream} functions.
      *
-     * @param list The list.
+     * @param collection The collection.
      * @param predicate The predicate.
      * @return The stream.
-     * @param <T> The list type.
+     * @param <T> The collection type.
      */
-    public static <T> Stream<T> filteredStream(final List<T> list, final Predicate<T> predicate) {
-        return list.stream().filter(predicate);
+    public static <T> Stream<T> filteredStream(final Collection<T> collection, final Predicate<T> predicate) {
+        return collection.stream().filter(predicate);
     }
 
     /**
-     * Creates a filtered list from a list based on the given predicate.
+     * Filters a list based on the given predicate.
      *
      * @param list The list.
      * @param predicate The predicate.
-     * @return The stream.
+     * @return The filtered list.
      * @param <T> The list type.
      */
     public static <T> List<T> filteredList(final List<T> list, final Predicate<T> predicate) {
@@ -135,20 +141,20 @@ public final class Util {
      * @return The expected object. Throws an exception if the object is not present.
      * @param <T> The list type.
      */
-    public static <T> T findAny(final List<T> list, final Predicate<T> predicate) {
+    public static <T> T findAny(final Collection<T> list, final Predicate<T> predicate) {
         return filteredStream(list, predicate).findAny().orElseThrow();
     }
 
     /**
-     * Checks if any element in the list matches the given predicate.
+     * Checks if any element in the collection matches the given predicate.
      *
-     * @param list The list.
+     * @param collection The collection.
      * @param predicate The predicate.
-     * @return {@code true} if any match in the list is found.
-     * @param <T> The list type.
+     * @return {@code true} if any match in the collection is found.
+     * @param <T> The collection type.
      */
-    public static <T> boolean anyMatch(final List<T> list, final Predicate<T> predicate) {
-        return list.stream().anyMatch(predicate);
+    public static <T> boolean anyMatch(final Collection<T> collection, final Predicate<T> predicate) {
+        return collection.stream().anyMatch(predicate);
     }
 
     /**
@@ -164,19 +170,40 @@ public final class Util {
     }
 
     /**
-     * Checks if no elements in the list match the given predicate.
+     * Checks if no elements in the collection match the given predicate.
      *
-     * @param list The list.
+     * @param collection The collection.
      * @param predicate The predicate.
-     * @return {@code true} if no matches in the list are found.
-     * @param <T> The list type.
+     * @return {@code true} if no matches in the collection are found.
+     * @param <T> The collection type.
      */
-    public static <T> boolean noneMatch(final List<T> list, final Predicate<T> predicate) {
-        return list.stream().noneMatch(predicate);
+    public static <T> boolean noneMatch(final Collection<T> collection, final Predicate<T> predicate) {
+        return collection.stream().noneMatch(predicate);
     }
 
+    /**
+     * Checks if no elements in the array match the given predicate.
+     *
+     * @param array The array.
+     * @param predicate The predicate.
+     * @return {@code true} if no matches in the array are found.
+     * @param <T> The array type.
+     */
     public static <T> boolean noneMatch(final T[] array, final Predicate<T> predicate) {
         return Arrays.stream(array).noneMatch(predicate);
+    }
+
+    /**
+     * Checks if the collection has duplicate elements. This is done by comparing the size of the original collection to
+     * the size the collection with the {@link Stream#distinct()} stream function applied. A difference in size means the
+     * stream filtered out any duplicate elements.
+     *
+     * @param collection The collection.
+     * @return {@code true} if the original collection and filtered collection are different sizes.
+     * @param <T> The collection type.
+     */
+    public static <T> boolean hasDuplicates(final Collection<T> collection) {
+        return collection.stream().distinct().count() != collection.size();
     }
 
     /**
@@ -206,6 +233,10 @@ public final class Util {
     /**
      * Creates a map based on a key list and a value list.
      *
+     * <p> To lessen the risk of map-parsing bugs, both lists should be instances of a {@link LinkedList} so that the intended
+     * orders for both lists are preserved and their elements are matched properly. This is not always required, however.
+     * They should also be equal in size; if they aren't, an {@link IllegalStateException} will be thrown. </p>
+     *
      * @param keys The key list.
      * @param values The value list.
      * @return The map. An exception is thrown if the key and value lists are not the same size.
@@ -216,7 +247,7 @@ public final class Util {
         final Map<K, V>  map = new HashMap<>();
 
         if (keys.size() != values.size()) {
-            throw new IllegalArgumentException("Key size -> " + keys.size() + "is not equal to value size -> " + values.size());
+            throw new IllegalStateException("Key size -> " + keys.size() + "is not equal to value size -> " + values.size());
         }
 
         for (int i = 0; i < keys.size(); i++) {
@@ -227,28 +258,54 @@ public final class Util {
     }
 
     /**
-     * Inverts a map. Keys become values and vice versa.
+     * Creates a {@link BiMap} from the provided key set and value set.
+     *
+     * <p> To lessen the risk of map-parsing bugs, both lists should be instances of a {@link LinkedList} so that the intended
+     * orders for both lists are preserved and their elements are matched properly. This is not always required, however.
+     * They should also be equal in size; if they aren't, an {@link IllegalStateException} will be thrown.
+     * Lastly, since this is a BiMap, both the lists and the values must consist of unique elements.
+     * Otherwise, another {@link IllegalStateException} will be thrown. </p>
+     *
+     * @param keys The key list.
+     * @param values The value list.
+     * @return The BiMap.
+     * @param <K> The key type.
+     * @param <V> The value type.
+     */
+    public static <K, V> BiMap<K, V> biMap(final List<K> keys, final List<V> values) {
+        if (hasDuplicates(keys)) {
+            throw new IllegalStateException("Duplicate keys found.");
+        } else if (hasDuplicates(values)) {
+            throw new IllegalStateException("Duplicate values found.");
+        }
+
+        return HashBiMap.create(map(keys, values));
+    }
+
+    /**
+     * Inverts a map. Keys become values and vice versa. This is a {@link BiMap} because the map must consist of both unique
+     * keys and unique values.
      *
      * @param original The original map.
      * @return The inverted map.
      * @param <K> The key type.
      * @param <V> The value type.
      */
-    public static <K, V> Map<V, K> invertedMap(final Map<K, V> original) {
-        final Map<V, K> inverted = new HashMap<>();
-        original.forEach((k, v) -> inverted.put(v, k));
-        return inverted;
+    public static <K, V> BiMap<V, K> invertedMap(final BiMap<K, V> original) {
+        return original.inverse();
     }
 
     /**
-     * Gets the key in a map from the provided value.
+     * Gets the key in a map from the provided value. This requires a {@link BiMap} because the map must consist of both unique
+     * keys and unique values.
+     *
      * @param map The map.
      * @param value The value.
      * @return The key. An exception is thrown if the value is not present.
      * @param <K> The key type.
      * @param <V> The value type.
      */
-    public static <K, V> K keyFromValue(final Map<K, V> map, final V value) {
+    public static <K, V> K keyFromValue(final BiMap<K, V> map, final V value) {
         final K key = invertedMap(map).get(value);
         return Util.get(key);
     }
@@ -258,9 +315,7 @@ public final class Util {
         return Os.current();
     }
 
-    /**
-     * Enum representation of the current OS.
-     */
+    /** Enum representation of the current OS. */
     public enum Os {
         LINUX("linux"),
         MACOS("osx"),

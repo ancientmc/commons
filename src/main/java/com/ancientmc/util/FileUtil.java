@@ -1,7 +1,11 @@
 package com.ancientmc.util;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.file.PathUtils;
 import org.jspecify.annotations.NonNull;
 
@@ -46,7 +50,7 @@ public final class FileUtil {
     }
 
     /**
-     * Creates the parent of the provided directory (and any super-parent directory) if it doesn't exist.
+     * Creates the parent directory of the path if it doesn't exist.
      *
      * @param path The path.
      * @throws IOException exception.
@@ -155,7 +159,7 @@ public final class FileUtil {
         return Util.get(
                 isFile(path),
                 path.getFileName().toString(),
-                path + " is not a file.");
+                new IOException(path + " is not a file."));
     }
 
     /**
@@ -209,13 +213,47 @@ public final class FileUtil {
     }
 
     /**
-     * Checks if a file name is not in the exclusion list.
-     * @param name The file name.
-     * @param exclusions A list of regexes indicating excluded paths.
-     * @return t
+     * Checks if the directory does not exist or if it's empty.
+     *
+     * @param directory The directory.
+     * @return {@code true} if the directory is empty, or it does not exist. An exception is thrown if the path is not a directory.
+     * @throws IOException exception.
      */
-    private static boolean notExcluded(final String name, final String... exclusions) {
-        return Arrays.stream(exclusions).noneMatch(name::matches);
+    public static boolean directoryMissingOrEmpty(final Path directory) throws IOException {
+        if (!isDirectory(directory)) {
+            throw new IllegalArgumentException("Path " + directory + " is not a directory.");
+        }
+
+        return !exists(directory) || isDirectoryEmpty(directory);
+    }
+
+    /**
+     * Checks if the directory is empty.
+     *
+     * @param directory The directory.
+     * @return {@code true} if the directory is empty. An exception is thrown if the path is not a directory.
+     * @throws IOException exception.
+     */
+    public static boolean isDirectoryEmpty(final Path directory) throws IOException {
+        if (!isDirectory(directory)) {
+            throw new IllegalArgumentException("Path " + directory + " is not a directory.");
+        }
+
+        final DirectoryTree tree = DirectoryTree.walk(directory);
+        return tree.isEmpty();
+    }
+
+    /**
+     * Checks if the path name is in the exclusion array. Used for path tree filtering.
+     *
+     * @param name The path.
+     * @param exclusions A list of regexes indicating excluded paths.
+     * @return {@code True} if the path name is excluded, and {@code false} if not.
+     * If the exclusions are null, the method returns {@code false}.
+     */
+    public static boolean isExcluded(final String name, final String... exclusions) {
+        if (exclusions == null) return false;
+        return Util.anyMatch(exclusions, name::matches);
     }
 
     /**
@@ -229,27 +267,36 @@ public final class FileUtil {
         return Util.get(
                 isRegularFile(path),
                 name.substring(name.lastIndexOf('.') + 1),
-                path + " is not a file."
+                new IOException(path + " is not a file.")
         );
     }
 
     /**
      * Creates a {@link ZipArchiveEntry} tree containing the contents of the provided archive file.
      *
-     * @param archive The archive.
+     * @param zin The archive.
      * @param exclusions A list of regexes indicating excluded paths.
      * @return The list of archive entries.
      * @throws IOException exception.
      */
-    private static List<ZipArchiveEntry> zipTree(final Path archive, final String... exclusions) throws IOException {
-        try (InputStream in = Files.newInputStream(archive)) {
-            final ZipArchiveInputStream zin = new ZipArchiveInputStream(in);
-            final List<ZipArchiveEntry> entries = Util.list(zin.iterator().asIterator());
+    private static List<ZipArchiveEntry> zipTree(final ZipArchiveInputStream zin, final String... exclusions) throws IOException {
+        final List<ZipArchiveEntry> entries = Util.list(zin.iterator().asIterator());
+        return Util.filteredList(entries, entry -> !isExcluded(entry.getName(), exclusions));
+    }
 
-            if (exclusions != null) {
-                return entries.stream().filter(entry -> notExcluded(entry.getName(), exclusions)).toList();
-            } else {
-                return entries;
+    /**
+     * Compresses a ZIP archive (or a JAR file) from a directory tree.
+     *
+     * @param tree The directory tree.
+     * @param output The output archive.
+     * @throws IOException exception.
+     */
+    private static void compressZip(final DirectoryTree tree, final Path output) throws IOException {
+        try (ZipArchiveOutputStream zip = new ZipArchiveOutputStream(output)) {
+            for (Path path : tree) {
+                final Path relative = tree.relativize(path);
+                zip.putArchiveEntry(new ZipArchiveEntry(relative.toString()));
+                zip.closeArchiveEntry();
             }
         }
     }
@@ -262,15 +309,23 @@ public final class FileUtil {
      * @param exclusions A list of regexes indicating excluded paths.
      * @throws IOException exception.
      */
-    public static void extract(final Path archive, final Path output, final String... exclusions) throws IOException {
-        final List<ZipArchiveEntry> entries = zipTree(archive, exclusions);
+    public static void extractZip(final Path archive, final Path output, final String... exclusions) throws IOException {
+        try (final InputStream in = Files.newInputStream(archive)) {
+            final ZipArchiveInputStream zin = new ZipArchiveInputStream(in);
+            final List<ZipArchiveEntry> entries = zipTree(zin, exclusions);
 
-        for (ZipArchiveEntry entry : entries) {
-            final Path entryPath = output.resolve(entry.getName());
-            createParentDirectory(entryPath);
+            for (ZipArchiveEntry entry : entries) {
+                if (!zin.canReadEntryData(entry)) continue;
+                final Path entryPath = output.resolve(entry.getName());
+                createParentDirectory(entryPath);
 
-            try (OutputStream out = Files.newOutputStream(entryPath)) {
-                Files.copy(entryPath, out);
+                if (entry.isDirectory()) {
+                    createDirectory(entryPath);
+                }
+
+                try (OutputStream out = Files.newOutputStream(entryPath)) {
+                    IOUtils.copy(zin, out);
+                }
             }
         }
     }
@@ -278,24 +333,13 @@ public final class FileUtil {
     /**
      * Representation of a directory tree.
      *
-     * <p> This is <b>not</b> meant to be instantiated with the constructor.
-     * Use {@link DirectoryTree#walk(Path, String...)} to call an instance of this object. </p>
+     * <p> This is <b>not</b> meant to be directly instantiated with the constructor.
+     * Instead, use {@link DirectoryTree#walk(Path, String...)}. This function walks through the file tree and determines
+     * the subpaths. </p>
      *
      * @param paths The list of paths nested in the tree.
      */
-    public record DirectoryTree(List<Path> paths) implements Iterable<Path> {
-
-        /**
-         * Checks if the path is excluded.
-         *
-         * @param path The path.
-         * @param exclusions A list of regexes indicating excluded paths.
-         * @return {@code True} if the path name is excluded, and {@code false} if not. If the exclusions are null, the method returns {@code false}.
-         */
-        private static boolean isExcluded(final Path path, final String... exclusions) {
-            if (exclusions == null) return false;
-            return Util.anyMatch(exclusions, getName(path)::matches);
-        }
+    public record DirectoryTree(Path root, List<Path> paths) implements Iterable<Path> {
 
         /**
          * Adds an entry to the sub path list.
@@ -330,23 +374,36 @@ public final class FileUtil {
                 @NonNull
                 @Override
                 public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
-                    return isExcluded(dir, exclusions) ? FileVisitResult.SKIP_SUBTREE : add(root, dir, paths);
+                    return isExcluded(getName(dir), exclusions) ? FileVisitResult.SKIP_SUBTREE : add(root, dir, paths);
                 }
 
                 @NonNull
                 @Override
                 public FileVisitResult visitFile(@NonNull Path file, @NonNull BasicFileAttributes attrs) {
-                    return isExcluded(file, exclusions) ? FileVisitResult.TERMINATE : add(root, file, paths);
+                    return isExcluded(getName(file), exclusions) ? FileVisitResult.TERMINATE : add(root, file, paths);
                 }
             });
 
-            return new DirectoryTree(paths);
+            return new DirectoryTree(root, paths);
         }
 
         @NonNull
         @Override
         public Iterator<Path> iterator() {
             return paths.iterator();
+        }
+
+        public Path relativize(final Path path) {
+            return root.relativize(path);
+        }
+
+        /**
+         * Checks if the directory tree is empty, meaning the directory contains no paths.
+         *
+         * @return {@code true} if the directory tree is empty.
+         */
+        public boolean isEmpty() {
+            return paths.isEmpty();
         }
     }
 }
