@@ -11,8 +11,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -235,7 +233,7 @@ public final class Util {
      *
      * <p> To lessen the risk of map-parsing bugs, both lists should be instances of a {@link LinkedList} so that the intended
      * orders for both lists are preserved and their elements are matched properly. This is not always required, however.
-     * They should also be equal in size; if they aren't, an {@link IllegalStateException} will be thrown. </p>
+     * They should also be equal in size; if they aren't, an {@link IllegalArgumentException} will be thrown. </p>
      *
      * @param keys The key list.
      * @param values The value list.
@@ -247,7 +245,7 @@ public final class Util {
         final Map<K, V>  map = new HashMap<>();
 
         if (keys.size() != values.size()) {
-            throw new IllegalStateException("Key size -> " + keys.size() + "is not equal to value size -> " + values.size());
+            throw new IllegalArgumentException("Key size -> " + keys.size() + "is not equal to value size -> " + values.size());
         }
 
         for (int i = 0; i < keys.size(); i++) {
@@ -262,9 +260,9 @@ public final class Util {
      *
      * <p> To lessen the risk of map-parsing bugs, both lists should be instances of a {@link LinkedList} so that the intended
      * orders for both lists are preserved and their elements are matched properly. This is not always required, however.
-     * They should also be equal in size; if they aren't, an {@link IllegalStateException} will be thrown.
+     * They should also be equal in size; if they aren't, an {@link IllegalArgumentException} will be thrown.
      * Lastly, since this is a BiMap, both the lists and the values must consist of unique elements.
-     * Otherwise, another {@link IllegalStateException} will be thrown. </p>
+     * Otherwise, another {@link IllegalArgumentException} will be thrown. </p>
      *
      * @param keys The key list.
      * @param values The value list.
@@ -274,9 +272,9 @@ public final class Util {
      */
     public static <K, V> BiMap<K, V> biMap(final List<K> keys, final List<V> values) {
         if (hasDuplicates(keys)) {
-            throw new IllegalStateException("Duplicate keys found.");
+            throw new IllegalArgumentException("Duplicate keys found.");
         } else if (hasDuplicates(values)) {
-            throw new IllegalStateException("Duplicate values found.");
+            throw new IllegalArgumentException("Duplicate values found.");
         }
 
         return HashBiMap.create(map(keys, values));
@@ -308,6 +306,54 @@ public final class Util {
     public static <K, V> K keyFromValue(final BiMap<K, V> map, final V value) {
         final K key = invertedMap(map).get(value);
         return Util.get(key);
+    }
+
+    /**
+     * Creates an exception of type {@code X} with the provided message.
+     *
+     * @param factory The exception factory.
+     * @param message The message.
+     * @return The exception.
+     * @param <X> The exception type.
+     */
+    public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String message) {
+        return factory.create(message);
+    }
+
+    /**
+     * Creates an exception of type {@code X} with the provided formatted message.
+     *
+     * @param factory The exception factory.
+     * @param template The message format template.
+     * @param args Arguments passed into the template for formatting.
+     * @return The exception.
+     * @param <X> The exception type.
+     */
+    public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String template, final Object... args) {
+        String message = String.format(template, args);
+        return exception(factory, message);
+    }
+
+    /**
+     * Creates an {@link IOException} and formats the provided message template with arguments.
+     *
+     * @param template The message format template.
+     * @param args Arguments passed into the template for formatting.
+     * @return The exception.
+     */
+    public static IOException ioException(final String template, final Object... args) {
+        return exception(IOException::new, template, args);
+    }
+
+    /**
+     * Creates an {@link IllegalArgumentException} and formats the provided message template with arguments.
+     *
+     * @param template The message format template.
+     * @param args Arguments passed into the template for formatting.
+     * @return The exception.
+     */
+    public static IllegalArgumentException illegalArgException(final String template, final Object... args) {
+        return exception(IllegalArgumentException::new, template, args);
     }
 
     /** @return The currently-installed OS. */
@@ -351,5 +397,14 @@ public final class Util {
             return name;
         }
     }
-}
 
+    /**
+     * Factory for exception creation.
+     *
+     * @param <X> The exception type.
+     */
+    @FunctionalInterface
+    public interface ExceptionFactory<X extends Exception> {
+        X create(final String message);
+    }
+}

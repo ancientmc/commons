@@ -1,7 +1,5 @@
 package com.ancientmc.util;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -96,7 +94,7 @@ public final class FileUtil {
      * @param output The output file or directory.
      * @throws IOException exception.
      */
-    public static void copyFile(final Path input, final Path output) throws IOException {
+    private static void copyFile(final Path input, final Path output) throws IOException {
         if (isDirectory(output)) {
             createDirectory(output);
             PathUtils.copyFileToDirectory(input, output);
@@ -116,7 +114,7 @@ public final class FileUtil {
      * @param exclusions A list of regexes indicating excluded paths from copying.
      * @throws IOException exception.
      */
-    public static void copyDirectory(final Path input, final Path output, final boolean wholeDirectory, final String... exclusions) throws IOException {
+    private static void copyDirectory(final Path input, final Path output, final boolean wholeDirectory, final String... exclusions) throws IOException {
         if (wholeDirectory) {
             copyWholeDirectory(input, output);
         } else {
@@ -124,7 +122,7 @@ public final class FileUtil {
         }
     }
 
-    public static void copyWholeDirectory(final Path input, final Path output) throws IOException {
+    private static void copyWholeDirectory(final Path input, final Path output) throws IOException {
         createDirectory(output);
         Path copiedDir = output.resolve(getName(input));
         copyDirectoryContents(input, copiedDir);
@@ -138,7 +136,8 @@ public final class FileUtil {
      * @param exclusions A list of regexes indicating excluded paths from copying.
      * @throws IOException exception.
      */
-    public static void copyDirectoryContents(final Path input, final Path output, final String... exclusions) throws IOException {
+
+    private static void copyDirectoryContents(final Path input, final Path output, final String... exclusions) throws IOException {
         createDirectory(output);
         final DirectoryTree tree = DirectoryTree.walk(input, exclusions);
 
@@ -159,7 +158,8 @@ public final class FileUtil {
         return Util.get(
                 isFile(path),
                 path.getFileName().toString(),
-                new IOException(path + " is not a file."));
+                Util.ioException("%s is not a file.", path)
+        );
     }
 
     /**
@@ -267,7 +267,7 @@ public final class FileUtil {
         return Util.get(
                 isRegularFile(path),
                 name.substring(name.lastIndexOf('.') + 1),
-                new IOException(path + " is not a file.")
+                Util.ioException("%s is not a file.", path)
         );
     }
 

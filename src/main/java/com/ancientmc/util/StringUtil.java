@@ -1,6 +1,5 @@
 package com.ancientmc.util;
 
-import java.io.InvalidClassException;
 import java.util.*;
 
 /**
@@ -21,8 +20,7 @@ public final class StringUtil {
         return Util.get(
                 Character.isLetter(string.charAt(0)),
                 string.substring(0, 1).toUpperCase(Locale.ROOT) + string.substring(1),
-                new IllegalArgumentException("First character of string " + string
-                        + " (" + string.charAt(0) + " ) is not a letter.")
+                Util.illegalArgException("First character of string %s (%c) is not a letter.", string, string.charAt(0))
         );
     }
 
@@ -185,7 +183,8 @@ public final class StringUtil {
         String valueType = Util.get(
                 !value.getClass().isAnonymousClass(),
                 value.getClass().getSimpleName(),
-                new InvalidClassException("Class " + value.getClass() + "is anonymous and has no simple name.")
+                Util.illegalArgException(
+                        "Class %s of value %s is anonymous and has no simple name.", value.getClass().toString(), value)
         );
 
         return spaced(prefix, valueType);
