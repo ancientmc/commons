@@ -47,14 +47,21 @@ jar {
 shadowJar {
     dependsOn jar
     archiveClassifier = 'all'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles()
+    append('META-INF/LICENSE')
+    append('META-INF/LICENSE.txt')
+    append('META-INF/NOTICE.txt')
 }
 
 sourcesJar {
     from sourceSets.main.allJava
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 javadocJar {
     from javadoc.destinationDir
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 artifacts {
