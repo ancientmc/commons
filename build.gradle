@@ -1,6 +1,7 @@
 plugins {
     id 'com.gradleup.shadow' version '9.4.1'
     id 'java-library'
+    id 'maven-publish'
 }
 
 group = 'com.ancientmc'
@@ -62,4 +63,36 @@ artifacts {
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications.register('mavenJava', MavenPublication) {
+        from components.java
+        group = project.group
+        artifactId = project.name
+        version = project.version
+        pom {
+            name = artifactId
+            description = 'Common code for AncientMC projects.'
+            url = 'https://github.com/ancientmc/commons'
+            licenses {
+                license {
+                    name = 'MIT License'
+                    url = 'https://mit-license.org/'
+                }
+            }
+            developers {
+                developer {
+                    id = 'moist-mason'
+                    name = 'Mason'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'ancientmc-maven'
+            url = '../ancientmc-maven/'
+        }
+    }
 }
