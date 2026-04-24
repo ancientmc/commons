@@ -9,7 +9,7 @@ import java.nio.file.Path;
 public abstract class FileFunction {
     protected Path input;
     protected Path output;
-    protected String[] exclusions;
+    protected String[] inclusions;
 
     public abstract void run() throws IOException;
 
@@ -23,8 +23,8 @@ public abstract class FileFunction {
         return this;
     }
 
-    public FileFunction withExclusions(final String... exclusions) {
-        this.exclusions = exclusions;
+    public FileFunction withInclusions(final String... exclusions) {
+        this.inclusions = exclusions;
         return this;
     }
 
@@ -42,11 +42,19 @@ public abstract class FileFunction {
         }
     }
 
-    public static class Copy extends FileFunction {
+    public static class FileCopy extends FileFunction {
 
         @Override
         public void run() throws IOException {
-            FileUtil.copy(input, output, exclusions);
+            FileUtil.copyFile(input, output);
+        }
+    }
+
+    public static class DirectoryCopy extends FileFunction {
+
+        @Override
+        public void run() throws IOException {
+            FileUtil.copyDirectory(input, output, true);
         }
     }
 
@@ -54,7 +62,7 @@ public abstract class FileFunction {
 
         @Override
         public void run() throws IOException {
-            FileUtil.extract(input, output, exclusions);
+            FileUtil.extractZip(input, output, inclusions);
         }
     }
 }

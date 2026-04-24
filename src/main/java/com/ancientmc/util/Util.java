@@ -321,7 +321,7 @@ public final class Util {
     }
 
     /**
-     * Creates an exception of type {@code X} with the provided formatted message.
+     * Creates an exception of type {@code X} and formats the provided message template with arguments.
      *
      * @param factory The exception factory.
      * @param template The message format template.
@@ -354,6 +354,21 @@ public final class Util {
      */
     public static IllegalArgumentException illegalArgException(final String template, final Object... args) {
         return exception(IllegalArgumentException::new, template, args);
+    }
+
+    /**
+     * Converts a maven path into a URL.
+     *
+     * @param repo The repository URL.
+     * @param path The maven path (group.sub:name:version).
+     * @param ext The file extension of the artifact.
+     * @return The maven URL.
+     */
+    public static URL toMavenUrl(String repo, String path, String ext) {
+        String[] split = path.split(":");
+        String file = split[1] + "-" + split[2] + (split.length > 3 ? "-" + split[3] : "") + "." + ext;
+        String newPath = split[0].replace('.', '/') + "/" + split[1] + "/" + split[2] + "/" + file;
+        return URL.apply(repo + newPath);
     }
 
     /** @return The currently-installed OS. */
@@ -393,6 +408,7 @@ public final class Util {
             }
         }
 
+        /** @return The name of the OS. */
         public String getName() {
             return name;
         }

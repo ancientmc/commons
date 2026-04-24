@@ -58,33 +58,14 @@ public final class FileUtil {
     }
 
     /**
-     * Basic copy method.
+     * Copies a single file. Call for copying a file to another file path.
      *
-     * @param input The input file or directory.
+     * @param input The input file.
      * @param output The output file or directory.
-     * @param exclusions A list of regexes indicating excluded paths from copying.
      * @throws IOException exception.
      */
-    public static void copy(final Path input, final Path output, final String... exclusions) throws IOException {
-        copy(input, output, false, exclusions);
-    }
-
-    /**
-     * Basic copy method.
-     *
-     * @param input The input file or directory.
-     * @param output The output file or directory.
-     * @param wholeDirectory For directory copying. Set to {@code true} if you're copying an entire directory object into another directory (Path target_dir/src_dir).
-     * Set to {@code false} if you're copying the directory *contents* into another directory (Path target_dir/src_contents).
-     * @param exclusions A list of regexes indicating excluded paths from copying.
-     * @throws IOException exception.
-     */
-    public static void copy(final Path input, final Path output, final boolean wholeDirectory, final String... exclusions) throws IOException {
-        if (isDirectory(input)) {
-            copyDirectory(input, output, wholeDirectory, exclusions);
-        } else {
-            copyFile(input, output);
-        }
+    public static void copyFile(final Path input, final Path output) throws IOException {
+        copyFile(input, output, false);
     }
 
     /**
@@ -92,10 +73,11 @@ public final class FileUtil {
      *
      * @param input The input file.
      * @param output The output file or directory.
+     * @param toDirectory {@code true} if the output is a directory, and {@code false} if it's a file.
      * @throws IOException exception.
      */
-    private static void copyFile(final Path input, final Path output) throws IOException {
-        if (isDirectory(output)) {
+    public static void copyFile(final Path input, final Path output, final boolean toDirectory) throws IOException {
+        if (toDirectory) {
             createDirectory(output);
             PathUtils.copyFileToDirectory(input, output);
         } else {
@@ -105,23 +87,42 @@ public final class FileUtil {
     }
 
     /**
+     * Copies a directory. Call only for copying contents.
+     *
+     * @param input The input directory.
+     * @param output The output directory.
+     * @param inclusions A list of globs indicating excluded paths from copying.
+     * @throws IOException exception.
+     */
+    public static void copyDirectory(final Path input, final Path output, final String... inclusions) throws IOException {
+        copyDirectory(input, output, false, inclusions);
+    }
+
+    /**
      * Copies a directory. Handles whether you're copying the entire directory into another path or only copying its contents.
      *
      * @param input The input directory.
      * @param output The output directory.
-     * @param wholeDirectory For directory copying. Set to {@code true} if you're copying an entire directory object into another directory (Path target_dir/src_dir).
+     * @param wholeDirectory Set to {@code true} if you're copying an entire directory object into another directory (Path target_dir/src_dir).
      * Set to {@code false} if you're copying the directory *contents* into another directory (Path target_dir/src_contents).
-     * @param exclusions A list of regexes indicating excluded paths from copying.
+     * @param inclusions A list of globs indicating excluded paths from copying.
      * @throws IOException exception.
      */
-    private static void copyDirectory(final Path input, final Path output, final boolean wholeDirectory, final String... exclusions) throws IOException {
+    public static void copyDirectory(final Path input, final Path output, final boolean wholeDirectory, final String... inclusions) throws IOException {
         if (wholeDirectory) {
             copyWholeDirectory(input, output);
         } else {
-            copyDirectoryContents(input, output, exclusions);
+            copyDirectoryContents(input, output, inclusions);
         }
     }
 
+    /**
+     * Copies one directory into another.
+     *
+     * @param input The input directory.
+     * @param output The output directory.
+     * @throws IOException exception.
+     */
     private static void copyWholeDirectory(final Path input, final Path output) throws IOException {
         createDirectory(output);
         Path copiedDir = output.resolve(getName(input));
@@ -133,13 +134,12 @@ public final class FileUtil {
      *
      * @param input The input directory.
      * @param output The output directory.
-     * @param exclusions A list of regexes indicating excluded paths from copying.
+     * @param inclusions A list of globs indicating excluded paths from copying.
      * @throws IOException exception.
      */
-
-    private static void copyDirectoryContents(final Path input, final Path output, final String... exclusions) throws IOException {
+    private static void copyDirectoryContents(final Path input, final Path output, final String... inclusions) throws IOException {
         createDirectory(output);
-        final DirectoryTree tree = DirectoryTree.walk(input, exclusions);
+        final DirectoryTree tree = DirectoryTree.walk(input, inclusions);
 
         for (Path path : tree) {
             Path relative = input.relativize(path);
@@ -220,10 +220,6 @@ public final class FileUtil {
      * @throws IOException exception.
      */
     public static boolean directoryMissingOrEmpty(final Path directory) throws IOException {
-        if (!isDirectory(directory)) {
-            throw new IllegalArgumentException("Path " + directory + " is not a directory.");
-        }
-
         return !exists(directory) || isDirectoryEmpty(directory);
     }
 
@@ -244,16 +240,22 @@ public final class FileUtil {
     }
 
     /**
-     * Checks if the path name is in the exclusion array. Used for path tree filtering.
+     * Checks if the path name is in the included array. Used for path tree filtering.
      *
-     * @param name The path.
-     * @param exclusions A list of regexes indicating excluded paths.
-     * @return {@code True} if the path name is excluded, and {@code false} if not.
-     * If the exclusions are null, the method returns {@code false}.
+     * @param path The path.
+     * @param inclusions A list of globs indicating included paths.
+     * @return {@code true} if the path name is included, and {@code false} if not.
+     * If the inclusions are null, no filtering is needed, so the method returns {@code true}.
      */
-    public static boolean isExcluded(final String name, final String... exclusions) {
-        if (exclusions == null) return false;
-        return Util.anyMatch(exclusions, name::matches);
+    public static boolean isIncluded(final Path path, final String... inclusions) {
+        if (inclusions.length == 0) return true;
+
+        List<PathMatcher> matchers = Arrays.stream(inclusions)
+                .map(s -> "glob:" + s)
+                .map(FileSystems.getDefault()::getPathMatcher)
+                .toList();
+
+        return Util.anyMatch(matchers, m -> m.matches(path));
     }
 
     /**
@@ -269,19 +271,6 @@ public final class FileUtil {
                 name.substring(name.lastIndexOf('.') + 1),
                 Util.ioException("%s is not a file.", path)
         );
-    }
-
-    /**
-     * Creates a {@link ZipArchiveEntry} tree containing the contents of the provided archive file.
-     *
-     * @param zin The archive.
-     * @param exclusions A list of regexes indicating excluded paths.
-     * @return The list of archive entries.
-     * @throws IOException exception.
-     */
-    private static List<ZipArchiveEntry> zipTree(final ZipArchiveInputStream zin, final String... exclusions) throws IOException {
-        final List<ZipArchiveEntry> entries = Util.list(zin.iterator().asIterator());
-        return Util.filteredList(entries, entry -> !isExcluded(entry.getName(), exclusions));
     }
 
     /**
@@ -306,25 +295,26 @@ public final class FileUtil {
      *
      * @param archive The ZIP archive. Can include ZIPs or JARs.
      * @param output The output directory.
-     * @param exclusions A list of regexes indicating excluded paths.
+     * @param inclusions A list of globs indicating included paths.
      * @throws IOException exception.
      */
-    public static void extractZip(final Path archive, final Path output, final String... exclusions) throws IOException {
+    public static void extractZip(final Path archive, final Path output, final String... inclusions) throws IOException {
         try (final InputStream in = Files.newInputStream(archive)) {
             final ZipArchiveInputStream zin = new ZipArchiveInputStream(in);
-            final List<ZipArchiveEntry> entries = zipTree(zin, exclusions);
+            ZipArchiveEntry entry;
 
-            for (ZipArchiveEntry entry : entries) {
-                if (!zin.canReadEntryData(entry)) continue;
+            while ((entry = zin.getNextEntry()) != null) {
                 final Path entryPath = output.resolve(entry.getName());
-                createParentDirectory(entryPath);
+                if (!isIncluded(entryPath, inclusions)) continue;
 
                 if (entry.isDirectory()) {
                     createDirectory(entryPath);
-                }
+                } else {
+                    createParentDirectory(entryPath);
 
-                try (OutputStream out = Files.newOutputStream(entryPath)) {
-                    IOUtils.copy(zin, out);
+                    try (OutputStream out = Files.newOutputStream(entryPath)) {
+                        IOUtils.copy(zin, out);
+                    }
                 }
             }
         }
@@ -337,6 +327,7 @@ public final class FileUtil {
      * Instead, use {@link DirectoryTree#walk(Path, String...)}. This function walks through the file tree and determines
      * the subpaths. </p>
      *
+     * @param root The root directory.
      * @param paths The list of paths nested in the tree.
      */
     public record DirectoryTree(Path root, List<Path> paths) implements Iterable<Path> {
@@ -345,7 +336,7 @@ public final class FileUtil {
          * Adds an entry to the sub path list.
          *
          * @param root The root directory. Used to compare with the currently visited path entry; if the visited path
-         * is the root directory, it does not get added.
+         * -is- the root directory, it does not get added.
          * @param entry The currently visited path.
          * @param paths The list to add the visited path to.
          * @return a {@link FileVisitResult} flag to tell the file visitor to continue walking the tree.
@@ -362,11 +353,11 @@ public final class FileUtil {
          * Walks the tree of the root directory and creates an instance of {@link DirectoryTree}.
          *
          * @param root The root directory.
-         * @param exclusions A list of regexes indicating excluded paths.
+         * @param inclusions A list of globs indicating included paths.
          * @return The directory tree.
          * @throws IOException exception.
          */
-        public static DirectoryTree walk(final Path root, final String... exclusions) throws IOException {
+        public static DirectoryTree walk(final Path root, final String... inclusions) throws IOException {
             final List<Path> paths = new ArrayList<>();
 
             Files.walkFileTree(root, new SimpleFileVisitor<>() {
@@ -374,13 +365,14 @@ public final class FileUtil {
                 @NonNull
                 @Override
                 public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
-                    return isExcluded(getName(dir), exclusions) ? FileVisitResult.SKIP_SUBTREE : add(root, dir, paths);
+
+                    return isIncluded(dir, inclusions) ? add(root, dir, paths) : FileVisitResult.SKIP_SUBTREE;
                 }
 
                 @NonNull
                 @Override
                 public FileVisitResult visitFile(@NonNull Path file, @NonNull BasicFileAttributes attrs) {
-                    return isExcluded(getName(file), exclusions) ? FileVisitResult.TERMINATE : add(root, file, paths);
+                    return isIncluded(file, inclusions) ? add(root, file, paths) : FileVisitResult.CONTINUE;
                 }
             });
 
@@ -393,6 +385,12 @@ public final class FileUtil {
             return paths.iterator();
         }
 
+        /**
+         * Relativizes the given path within the root of the directory tree.
+         *
+         * @param path The path.
+         * @return The relativized path.
+         */
         public Path relativize(final Path path) {
             return root.relativize(path);
         }

@@ -1,5 +1,8 @@
 package com.ancientmc.util;
 
+import com.ancientmc.data.Pair;
+import com.ancientmc.data.Triple;
+
 import java.util.*;
 
 /**
@@ -51,7 +54,7 @@ public final class StringUtil {
      * @return The bracketed string.
      */
     public static String brackets(final String string) {
-        return "[" + brackets(string) + "]";
+        return "[" + string + "]";
     }
 
     /**
@@ -144,8 +147,8 @@ public final class StringUtil {
         String[] entries = map.entrySet().stream()
                 .map(e -> spaced(
                         e.getKey().toString() + ":", 
-                        e.getValue().toString())
-                ).map(StringUtil::brackets)
+                        e.getValue().toString()))
+                .map(StringUtil::brackets)
                 .toArray(String[]::new);
 
         return commas(entries);
@@ -178,11 +181,15 @@ public final class StringUtil {
             prefix = mapPrefix((Map<?,?>) value);
         } else if (value instanceof Enum<?>) {
             prefix = enumPrefix((Enum<?>) value);
+        } else if (value instanceof Pair<?,?>) {
+            prefix = pairPrefix((Pair<?, ?>) value);
+        } else if (value instanceof Triple<?, ?, ?>) {
+            prefix = triplePrefix((Triple<?, ?, ?>) value);
         }
 
         String valueType = Util.get(
                 !value.getClass().isAnonymousClass(),
-                value.getClass().getSimpleName(),
+                typeName(value),
                 Util.illegalArgException(
                         "Class %s of value %s is anonymous and has no simple name.", value.getClass().toString(), value)
         );
@@ -198,7 +205,7 @@ public final class StringUtil {
      * @param <T> The array type.
      */
     private static <T> String toStringType(final T[] array) {
-        return spaced("Array of type", array.getClass().getComponentType().getTypeName());
+        return spaced("Array of type", typeName(array.getClass().getComponentType()));
     }
 
     /**
@@ -211,7 +218,7 @@ public final class StringUtil {
      */
     private static <T> String collectionPrefix(final Collection<T> collection) {
         return spaced(
-                collection.getClass().getTypeName(),
+                simpleName(collection),
                 "of Type:",
                 toStringType(collection.toArray().getClass().getComponentType().getTypeName())
         );
@@ -228,9 +235,9 @@ public final class StringUtil {
      */
     private static <K, V, M extends Map<K, V>> String mapPrefix(final M map) {
         return spaced(
-                map.getClass().getTypeName(),
-                "with Key Type:", collectionPrefix(Util.keys(map)),
-                "and Value Type:", collectionPrefix(Util.values(map))
+                simpleName(map),
+                "with Key Type:", typeName(Util.list(map.keySet()).getFirst()),
+                "and Value Type:", typeName(Util.list(map.values()).getFirst())
         );
     }
 
@@ -243,6 +250,68 @@ public final class StringUtil {
      * @param <T> The enum type.
      */
     private static <T extends Enum<T>> String enumPrefix(final Enum<T> enumeration) {
-        return "Enum " + enumeration.getDeclaringClass().getSimpleName();
+        return "Enum " + typeName(enumeration.getDeclaringClass());
+    }
+
+    /**
+     * Formats the type information of a {@link Pair}.
+     *
+     * @param pair The pair.
+     * @return The formatted type information.
+     * @param <L> The left type.
+     * @param <R> The right type.
+     */
+    private static <L, R> String pairPrefix(final Pair<L, R> pair) {
+        return spaced("Pair ->",
+                "with Left Type:", typeName(pair.left()),
+                "and Right Type:", typeName(pair.right())
+        );
+    }
+
+    /**
+     * Formats the type information of a {@link Triple}.
+     *
+     * @param triple The triple.
+     * @return The formatted type information.
+     * @param <L> The left type.
+     * @param <M> The middle type.
+     * @param <R> The right type.
+     */
+    private static <L, M, R> String triplePrefix(final Triple<L, M, R> triple) {
+        return spaced("Triple ->",
+                "with Left Type:", typeName(triple.left()),
+                "and Middle Type", typeName(triple.middle()),
+                "and Right Type",  typeName(triple.right())
+        );
+    }
+
+    /**
+     * Gets the simple (package-exclusive) class name of this value's type. Used for collections, maps, and other hierarchies.
+     * @param value The value.
+     * @return The simple class name.
+     * @param <T> The type.
+     */
+    private static <T> String simpleName(final T value) {
+        return value.getClass().getSimpleName();
+    }
+
+    /**
+     * Gets the class name of this value's type. Used for more specific types.
+     * @param value The value.
+     * @return The class name.
+     * @param <T> The type.
+     */
+    private static <T> String typeName(final T value) {
+        return value.getClass().getTypeName();
+    }
+
+    /**
+     * Gets the name of this class. Used for types that call another class during type retrieval, like enums and arrays.
+     * @param value The value.
+     * @return The class name.
+     * @param <T> The type.
+     */
+    private static <T> String typeName(final Class<T> value) {
+        return value.getTypeName();
     }
 }
