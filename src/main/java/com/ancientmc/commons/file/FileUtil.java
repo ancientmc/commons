@@ -1,10 +1,11 @@
-package com.ancientmc.util;
+package com.ancientmc.commons.file;
 
+import com.ancientmc.commons.Util;
+import com.ancientmc.commons.annotation.Internal;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.file.PathUtils;
 import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
@@ -13,7 +14,10 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * File-based functions, primarily using the {@link java.nio.file } Path API.
@@ -58,86 +62,83 @@ public final class FileUtil {
     }
 
     /**
-     * Copies a single file. Call for copying a file to another file path.
+     * Root method for file copying. Configurable by specifying the {@link CopyMode}.
      *
      * @param input The input file.
      * @param output The output file or directory.
+     * @param mode The {@link CopyMode} that determines the type of copy operation.
+     * @param inclusions A list of globs indicating paths included for copying (only used for directory tree copying).
+     * Leave blank to copy all inputs.
      * @throws IOException exception.
      */
-    public static void copyFile(final Path input, final Path output) throws IOException {
-        copyFile(input, output, false);
-    }
-
-    /**
-     * Copies a single file. Handles whether the target is another file path or a directory.
-     *
-     * @param input The input file.
-     * @param output The output file or directory.
-     * @param toDirectory {@code true} if the output is a directory, and {@code false} if it's a file.
-     * @throws IOException exception.
-     */
-    public static void copyFile(final Path input, final Path output, final boolean toDirectory) throws IOException {
-        if (toDirectory) {
-            createDirectory(output);
-            PathUtils.copyFileToDirectory(input, output);
-        } else {
-            createParentDirectory(output);
-            Files.copy(input, output);
+    public static void copy(final Path input, final Path output, final CopyMode mode, final String... inclusions) throws IOException {
+        switch (mode) {
+            case FILE_FILE -> copyFileToFile(input, output);
+            case FILE_DIRECTORY -> copyFileToDirectory(input, output);
+            case DIRECTORY_DIRECTORY -> copyDirectoryToDirectory(input, output);
+            case TREE_DIRECTORY -> copyDirectoryTree(input, output, inclusions);
         }
     }
 
     /**
-     * Copies a directory. Call only for copying contents.
+     * Copies a file to another file path.
+     * This method is public for documentation purposes.
+     * It is usable, but it's recommended to use {@link FileUtil#copy} instead.
      *
-     * @param input The input directory.
-     * @param output The output directory.
-     * @param inclusions A list of globs indicating excluded paths from copying.
+     * @param input The input file.
+     * @param output The output file.
      * @throws IOException exception.
      */
-    public static void copyDirectory(final Path input, final Path output, final String... inclusions) throws IOException {
-        copyDirectory(input, output, false, inclusions);
+    @Internal
+    public static void copyFileToFile(final Path input, final Path output) throws IOException {
+        createParentDirectory(output);
+        Files.copy(input, output);
     }
 
     /**
-     * Copies a directory. Handles whether you're copying the entire directory into another path or only copying its contents.
+     * Copies a file into a directory.
+     * This method is public for documentation purposes.
+     * It is usable, but it's recommended to use {@link FileUtil#copy} instead.
      *
-     * @param input The input directory.
+     * @param input The input file.
      * @param output The output directory.
-     * @param wholeDirectory Set to {@code true} if you're copying an entire directory object into another directory (Path target_dir/src_dir).
-     * Set to {@code false} if you're copying the directory *contents* into another directory (Path target_dir/src_contents).
-     * @param inclusions A list of globs indicating excluded paths from copying.
      * @throws IOException exception.
      */
-    public static void copyDirectory(final Path input, final Path output, final boolean wholeDirectory, final String... inclusions) throws IOException {
-        if (wholeDirectory) {
-            copyWholeDirectory(input, output);
-        } else {
-            copyDirectoryContents(input, output, inclusions);
-        }
+    @Internal
+    public static void copyFileToDirectory(final Path input, final Path output) throws IOException {
+        createDirectory(output);
+        final Path outputPath = output.resolve(input.getFileName());
+        Files.copy(input, outputPath);
     }
 
     /**
      * Copies one directory into another.
+     * This method is public for documentation purposes.
+     * It's usable, but it's recommended to use {@link FileUtil#copy} instead.
      *
      * @param input The input directory.
      * @param output The output directory.
      * @throws IOException exception.
      */
-    private static void copyWholeDirectory(final Path input, final Path output) throws IOException {
+    @Internal
+    public static void copyDirectoryToDirectory(final Path input, final Path output) throws IOException {
         createDirectory(output);
         Path copiedDir = output.resolve(getName(input));
-        copyDirectoryContents(input, copiedDir);
+        copyDirectoryTree(input, copiedDir);
     }
 
     /**
      * Copies the contents of a directory into another directory.
+     * This method is public for documentation purposes.
+     * It's usable, but it's recommended to use {@link FileUtil#copy} instead.
      *
      * @param input The input directory.
      * @param output The output directory.
-     * @param inclusions A list of globs indicating excluded paths from copying.
+     * @param inclusions A list of globs indicating paths included for copying. Leave blank to copy all inputs.
      * @throws IOException exception.
      */
-    private static void copyDirectoryContents(final Path input, final Path output, final String... inclusions) throws IOException {
+    @Internal
+    public static void copyDirectoryTree(final Path input, final Path output, final String... inclusions) throws IOException {
         createDirectory(output);
         final DirectoryTree tree = DirectoryTree.walk(input, inclusions);
 
@@ -155,11 +156,7 @@ public final class FileUtil {
      * @return The file name.
      */
     public static String getName(final Path path) {
-        return Util.get(
-                isFile(path),
-                path.getFileName().toString(),
-                Util.ioException("%s is not a file.", path)
-        );
+        return path.getFileName().toString();
     }
 
     /**
@@ -240,7 +237,7 @@ public final class FileUtil {
     }
 
     /**
-     * Checks if the path name is in the included array. Used for path tree filtering.
+     * Checks if the path name has a match in the included array. Used for path tree filtering.
      *
      * @param path The path.
      * @param inclusions A list of globs indicating included paths.
@@ -262,15 +259,11 @@ public final class FileUtil {
      * Gets the file extension.
      *
      * @param path The file path.
-     * @return The extension. Throws if the provided path is not a regular file.
+     * @return The extension.
      */
     public static String getExtension(final Path path) {
         final String name = getName(path);
-        return Util.get(
-                isRegularFile(path),
-                name.substring(name.lastIndexOf('.') + 1),
-                Util.ioException("%s is not a file.", path)
-        );
+        return name.substring(name.lastIndexOf('.') + 1);
     }
 
     /**
@@ -280,11 +273,14 @@ public final class FileUtil {
      * @param output The output archive.
      * @throws IOException exception.
      */
-    private static void compressZip(final DirectoryTree tree, final Path output) throws IOException {
+    public static void compressZip(final DirectoryTree tree, final Path output) throws IOException {
         try (ZipArchiveOutputStream zip = new ZipArchiveOutputStream(output)) {
             for (Path path : tree) {
                 final Path relative = tree.relativize(path);
-                zip.putArchiveEntry(new ZipArchiveEntry(relative.toString()));
+
+                // Ensure directories are defined as such in the entry name. Otherwise, empty files with the directory names get created.
+                String entry = relative + (isDirectory(path) ? "/" : "");
+                zip.putArchiveEntry(new ZipArchiveEntry(entry));
                 zip.closeArchiveEntry();
             }
         }
@@ -323,7 +319,7 @@ public final class FileUtil {
     /**
      * Representation of a directory tree.
      *
-     * <p> This is <b>not</b> meant to be directly instantiated with the constructor.
+     * <p> This is <b>not</b> meant to be directly instantiated with the constructor. Doing so ends up creating an empty tree,
      * Instead, use {@link DirectoryTree#walk(Path, String...)}. This function walks through the file tree and determines
      * the subpaths. </p>
      *
@@ -365,7 +361,6 @@ public final class FileUtil {
                 @NonNull
                 @Override
                 public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
-
                     return isIncluded(dir, inclusions) ? add(root, dir, paths) : FileVisitResult.SKIP_SUBTREE;
                 }
 

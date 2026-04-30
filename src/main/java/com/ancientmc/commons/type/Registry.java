@@ -1,9 +1,12 @@
-package com.ancientmc.data;
+package com.ancientmc.commons.type;
 
-import com.ancientmc.util.Util;
+import com.ancientmc.commons.Util;
 import org.jspecify.annotations.NonNull;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -21,21 +24,11 @@ import java.util.function.Consumer;
  */
 public class Registry<T> implements Iterable<Registry.Entry<T>> {
 
-    /** The entry set. Since this is a set, all values in the registry are unique. */
+    /** The entry set. Since this is a set, all entries in the registry are unique. */
     private final Set<Entry<T>> entries;
 
-    private Registry(final Set<Entry<T>> entries) {
-        this.entries = entries;
-    }
-
-    /**
-     * Static method to easily create a registry. This method defines an empty HashSet that
-     * data gets fed into.
-     * @return The registry.
-     * @param <T> The registry type.
-     */
-    public static <T> Registry<T> make() {
-        return new Registry<>(new HashSet<>());
+    public Registry() {
+        this.entries = new HashSet<>();
     }
 
     /**

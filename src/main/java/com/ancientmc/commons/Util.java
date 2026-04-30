@@ -1,13 +1,21 @@
-package com.ancientmc.util;
+package com.ancientmc.commons;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import org.jspecify.annotations.NonNull;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -309,6 +317,23 @@ public final class Util {
     }
 
     /**
+     * Parses the JSON file path to create a given object using its {@link Codec}.
+     *
+     * @param path The file path.
+     * @param codec The codec.
+     * @return The object.
+     * @param <T> The object type.
+     * @throws IOException exception.
+     */
+    public static <T> T parseJson(final Path path, final Codec<T> codec) throws IOException {
+        try (final BufferedReader reader = Files.newBufferedReader(path)) {
+            final JsonElement element = JsonParser.parseReader(reader);
+            final DataResult<T> data = codec.parse(JsonOps.INSTANCE, element);
+            return data.resultOrPartial().orElseThrow();
+        }
+    }
+
+    /**
      * Creates an exception of type {@code X} with the provided message.
      *
      * @param factory The exception factory.
@@ -378,39 +403,57 @@ public final class Util {
 
     /** Enum representation of the current OS. */
     public enum Os {
-        LINUX("linux"),
-        MACOS("osx"),
-        WINDOWS("windows"),
+        LINUX("linux", "debian", "ubuntu", "mint", "arch", "fedora", "zorin"),
+        MACOS("osx", "mac", "os x"),
+        WINDOWS("windows", "win"),
         UNKNOWN("unknown");
 
         /** The name of the OS as represented in the Minecraft version JSON. */
         private final String name;
 
-        Os(final String name) {
+        /** Any additional name(s) that an OS may have. */
+        private final String[] additionalNames;
+
+        Os(final String name, final String... additionalNames) {
             this.name = name;
+            this.additionalNames = additionalNames;
         }
 
         /** @return The currently-installed OS. */
         public static Os current() {
             final String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-            final List<String> commonDistros = List.of("debian", "ubuntu", "mint", "arch", "fedora", "zorin");
 
-            // similar to NeoFormRuntime, OsType.java
+            // Somewhat similar to NeoFormRuntime, OsType.java
             // in turn similar to Apache Commons Lang 3, SystemUtils.java
-            if (osName.contains("linux") || anyMatch(commonDistros, osName::contains)) {
+            if (LINUX.contains(osName)) {
                 return LINUX;
-            } else if (osName.contains("mac") || osName.contains("osx") || osName.contains("os x")) {
+            } else if (MACOS.contains(osName)) {
                 return MACOS;
-            } else if (osName.contains("win")) {
+            } else if (WINDOWS.contains(osName)) {
                 return WINDOWS;
             } else {
                 return UNKNOWN;
             }
         }
 
-        /** @return The name of the OS. */
+        /** @return The primary name of the OS. */
         public String getName() {
             return name;
+        }
+
+        /** @return Additional names of the OS. */
+        public String[] getAdditionalNames() {
+            return additionalNames;
+        }
+
+        /**
+         * Checks if the input contains any of the OS names.
+         *
+         * @param input The input string.
+         * @return {@code true} if the input contains any of the OS names.
+         */
+        private boolean contains(final String input) {
+            return input.contains(name) || StringUtil.containsAny(additionalNames, input);
         }
     }
 

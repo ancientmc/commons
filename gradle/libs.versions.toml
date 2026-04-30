@@ -1,11 +1,15 @@
 [versions]
+annotations = "1.0.0"
 commons-compress = "1.28.0"
-commons-io = "2.21.0"
+commons-io = "2.22.0"
+datafixerupper = "9.0.19"
 guava = "33.6.0-jre"
-gson = "2.13.2"
+gson = "2.14.0"
 
 [libraries]
+annotations = { module = "org.jspecify:jspecify", version.ref = "annotations" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

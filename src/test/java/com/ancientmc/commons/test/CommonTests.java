@@ -1,5 +1,6 @@
 package com.ancientmc.commons.test;
 
+import com.ancientmc.commons.file.CopyMode;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -7,7 +8,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-import static com.ancientmc.util.Util.URL;
+import static com.ancientmc.commons.Util.URL;
 
 public class CommonTests {
     private static final Path DATA_PATH = Path.of("data");
@@ -27,17 +28,22 @@ public class CommonTests {
 
     @Test
     public void copyJarFile() throws IOException {
-        copyFile("26.1.2.jar", "jar/");
+        copyFile("26.1.2.jar", "jar/", CopyMode.FILE_DIRECTORY);
     }
 
     @Test
     public void copyAllClasses() throws IOException {
-        copyDirectory("src/", "classes/");
+        copyDirectory("src/", "classes/", CopyMode.TREE_DIRECTORY);
     }
 
     @Test
     public void copyComMojangClassesToSomeOtherDirectoryOrSomething() throws IOException {
-        copyDirectory("src/com/", "classes/something/");
+        copyDirectory("src/com/", "mojangclasses/", CopyMode.DIRECTORY_DIRECTORY);
+    }
+
+    @Test
+    public void buildSlimJar() throws IOException {
+        compress("src/", "slim.jar");
     }
 
     public void download(final URL url, final String output) throws IOException {
@@ -47,17 +53,20 @@ public class CommonTests {
         function.run();
     }
 
-    public void copyFile(final String input, final String output) throws IOException {
+    public void copyFile(final String input, final String output, final CopyMode mode) throws IOException {
         final FileFunction function = new FileFunction.FileCopy()
                 .withInput(PATH.apply(input))
-                .withOutput(PATH.apply(output));
+                .withOutput(PATH.apply(output))
+                .withCopyMode(mode);
         function.run();
     }
 
-    public void copyDirectory(final String input, final String output, final String... inclusions) throws IOException {
+    public void copyDirectory(final String input, final String output, final CopyMode mode, final String... inclusions) throws IOException {
         final FileFunction function = new FileFunction.DirectoryCopy()
                 .withInput(PATH.apply(input))
-                .withOutput(PATH.apply(output));
+                .withOutput(PATH.apply(output))
+                .withCopyMode(mode)
+                .withInclusions(inclusions);
         function.run();
     }
 
@@ -67,6 +76,13 @@ public class CommonTests {
                 .withOutput(PATH.apply(output))
                 .withInclusions( // for this test, filter out everything but the actual Minecraft classes.
                         "**/com/**", "**/net/**");
+        function.run();
+    }
+
+    public void compress(final String input, final String output) throws IOException {
+        final FileFunction function = new FileFunction.Compress()
+                .withInput(PATH.apply(input))
+                .withOutput(PATH.apply(output));
         function.run();
     }
 }

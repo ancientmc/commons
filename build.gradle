@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.ancientmc'
-version = '0.1.0-snapshot-1'
+version = '0.1.0-snapshot-2'
 
 java {
     withSourcesJar()
@@ -15,11 +15,14 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = 'https://libraries.minecraft.net/' }
 }
 
 dependencies {
+    implementation libs.annotations
     implementation libs.commons.compress
     implementation libs.commons.io
+    implementation libs.datafixerupper
     implementation libs.guava
     implementation libs.gson
 

@@ -1,6 +1,7 @@
 package com.ancientmc.commons.test;
 
-import com.ancientmc.util.FileUtil;
+import com.ancientmc.commons.file.CopyMode;
+import com.ancientmc.commons.file.FileUtil;
 
 import java.io.IOException;
 import java.net.URL;
@@ -10,6 +11,7 @@ public abstract class FileFunction {
     protected Path input;
     protected Path output;
     protected String[] inclusions;
+    protected CopyMode mode;
 
     public abstract void run() throws IOException;
 
@@ -25,6 +27,11 @@ public abstract class FileFunction {
 
     public FileFunction withInclusions(final String... exclusions) {
         this.inclusions = exclusions;
+        return this;
+    }
+
+    public FileFunction withCopyMode(final CopyMode mode) {
+        this.mode = mode;
         return this;
     }
 
@@ -46,7 +53,7 @@ public abstract class FileFunction {
 
         @Override
         public void run() throws IOException {
-            FileUtil.copyFile(input, output);
+            FileUtil.copy(input, output, mode);
         }
     }
 
@@ -54,7 +61,7 @@ public abstract class FileFunction {
 
         @Override
         public void run() throws IOException {
-            FileUtil.copyDirectory(input, output, true);
+            FileUtil.copy(input, output, mode, inclusions);
         }
     }
 
@@ -63,6 +70,14 @@ public abstract class FileFunction {
         @Override
         public void run() throws IOException {
             FileUtil.extractZip(input, output, inclusions);
+        }
+    }
+
+    public static class Compress extends FileFunction {
+        @Override
+        public void run() throws IOException {
+            final FileUtil.DirectoryTree tree = FileUtil.DirectoryTree.walk(input);
+            FileUtil.compressZip(tree, output);
         }
     }
 }

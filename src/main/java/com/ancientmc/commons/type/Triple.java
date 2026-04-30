@@ -1,4 +1,4 @@
-package com.ancientmc.data;
+package com.ancientmc.commons.type;
 
 /**
  * Basic implementation of an immutable triple object.

@@ -1,7 +1,7 @@
-package com.ancientmc.util;
+package com.ancientmc.commons;
 
-import com.ancientmc.data.Pair;
-import com.ancientmc.data.Triple;
+import com.ancientmc.commons.type.Pair;
+import com.ancientmc.commons.type.Triple;
 
 import java.util.*;
 
@@ -16,45 +16,89 @@ public final class StringUtil {
      * Capitalizes the first character of the string. Throws an {@link IllegalArgumentException} if the first character
      * of the string is not a letter.
      *
-     * @param string The string.
+     * @param input The string.
      * @return The capitalized string.
      */
-    public static String capitalize(final String string) {
+    public static String capitalize(final String input) {
         return Util.get(
-                Character.isLetter(string.charAt(0)),
-                string.substring(0, 1).toUpperCase(Locale.ROOT) + string.substring(1),
-                Util.illegalArgException("First character of string %s (%c) is not a letter.", string, string.charAt(0))
+                Character.isLetter(input.charAt(0)),
+                input.substring(0, 1).toUpperCase(Locale.ROOT) + input.substring(1),
+                Util.illegalArgException("First character of string %s (%c) is not a letter.", input, input.charAt(0))
         );
     }
 
     /**
      * Joins the input strings together with spaces in between.
      *
-     * @param strings The strings.
+     * @param inputs The strings.
      * @return The joined strings.
      */
-    public static String spaced(final String... strings) {
-        return String.join(" ", strings);
+    public static String spaced(final String... inputs) {
+        return String.join(" ", inputs);
     }
 
     /**
      * Joins the input strings together with spaced commas in between.
      *
-     * @param strings The strings.
+     * @param inputs The strings.
      * @return The joined strings.
      */
-    public static String commas(final String... strings) {
-        return String.join(", ", strings);
+    public static String commas(final String... inputs) {
+        return String.join(", ", inputs);
     }
 
     /**
      * Surrounds the input string with square brackets [].
      *
-     * @param string The string.
+     * @param inputs The string.
      * @return The bracketed string.
      */
-    public static String brackets(final String string) {
-        return "[" + string + "]";
+    public static String brackets(final String inputs) {
+        return "[" + inputs + "]";
+    }
+
+    /**
+     * Checks if the input string partially contains any element of the array.
+     *
+     * @param array The array.
+     * @param input The input string.
+     * @return {@code true} if a partial match is found in the array.
+     */
+    public static boolean containsAny(final String[] array, final String input) {
+        return Util.anyMatch(array, input::contains);
+    }
+
+    /**
+     * Checks if the input string partially contains any element of the list.
+     *
+     * @param list The list.
+     * @param input The input string.
+     * @return {@code true} if a partial match is found in the list.
+     */
+    public static boolean containsAny(final List<String> list, final String input) {
+        return Util.anyMatch(list, input::contains);
+    }
+
+    /**
+     * Checks if the input string is equal to any element of the array.
+     *
+     * @param array The array.
+     * @param input The input string.
+     * @return {@code true} if an exact match is found in the array.
+     */
+    public static boolean equalsAny(final String[] array, final String input) {
+        return Util.anyMatch(array, input::equals);
+    }
+
+    /**
+     * Checks if the input string is equal to any element of the list.
+     *
+     * @param list The list.
+     * @param input The input string.
+     * @return {@code true} if an exact match is found in the list.
+     */
+    public static boolean equalsAny(final List<String> list, final String input) {
+        return Util.anyMatch(list, input::equals);
     }
 
     /**
@@ -66,7 +110,7 @@ public final class StringUtil {
      * @return The formatted string.
      * @param <T> The type.
      */
-    public <T> String toString(final T value, final String components) {
+    public static <T> String toString(final T value, final String components) {
         return toStringType(value) + " -> " + components;
     }
 
@@ -79,7 +123,7 @@ public final class StringUtil {
      * @return The formatted string.
      * @param <T> The array type.
      */
-    public <T> String toString(final T[] array) {
+    public static <T> String toString(final T[] array) {
         return toStringType(array) + " -> " + Arrays.toString(array);
     }
 
