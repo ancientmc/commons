@@ -9,6 +9,7 @@ import static java.lang.annotation.ElementType.*;
 
 /**
  * Marks a public type in an API as intended for internal use.
+ *
  * @author moist-mason
  */
 @Documented
