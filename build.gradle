@@ -4,8 +4,8 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.ancientmc'
-version = '0.1.0-snapshot-3'
+group = 'com.github.moistmason'
+version = '0.1.0-snapshot-4'
 
 java {
     withSourcesJar()
@@ -38,11 +38,11 @@ javadoc {
 
 jar {
     manifest { attributes (
-            'Specification-Title': 'com.ancientmc:commons',
-            'Specification-Vendor': 'AncientMC',
+            'Specification-Title': 'com.github.moistmason:commons',
+            'Specification-Vendor': 'moist-mason',
             'Specification-Version': '0.1.0-dev',
-            'Implementation-Title': 'com.ancientmc:commons',
-            'Implementation-Vendor': 'AncientMC',
+            'Implementation-Title': 'com.github.moistmason:commons',
+            'Implementation-Vendor': 'moist-mason',
             'Implementation-Version': project.version
     )}
 }
@@ -83,8 +83,8 @@ publishing {
         version = project.version
         pom {
             name = artifactId
-            description = 'Common code for AncientMC projects.'
-            url = 'https://github.com/ancientmc/commons'
+            description = 'Common code for moist-mason\'s Java projects.'
+            url = 'https://github.com/moist-mason/commons'
             licenses {
                 license {
                     name = 'MIT License'

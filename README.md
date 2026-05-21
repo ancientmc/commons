@@ -1,1 +1,1 @@
-Common code for AncientMC projects.
+Library containing reusable code for my Java projects, both on my own page and for [AncientMC](https://github.com/ancientmc/).
