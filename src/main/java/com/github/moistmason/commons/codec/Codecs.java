@@ -15,7 +15,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Contains codec types not found in the base DataFixerUpper library.
+ * Contains codec types not found in the base DataFixerUpper library, as well as builders for
+ * {@link RecordCodecBuilder} fields.
  *
  * @author moist-mason
  */
@@ -30,9 +31,9 @@ public final class Codecs {
     /**
      * Codec representation of a {@link Dictionary}.
      *
+     * @param <T> The value type.
      * @param valueCodec The codec of the dictionary's value type.
      * @return The codec.
-     * @param <T> The value type.
      */
     public static <T> Codec<Dictionary<T>> dictionary(final Codec<T> valueCodec) {
         return Codec.unboundedMap(Codec.STRING, valueCodec).xmap(Dictionary::fromMap, Dictionary::toMap);
@@ -124,17 +125,38 @@ public final class Codecs {
 
     /**
      * Creates a map field component as part of a {@link RecordCodecBuilder}.
-     *
-     * @param getter The method reference to a getter associated with this field.
-     * @param name The name of the field in the data output.
-     * @param keyCodec The codec associated with this field's key.
-     * @param valueCodec The codec associated with this field's value.
-     * @return The {@link RecordCodecBuilder}.
+     * 
      * @param <O> The type of this field's parent object.
      * @param <K> The type of this field's key.
      * @param <V> The type of this field's value.
+     * @param keyCodec The codec associated with this field's key.
+     * @param valueCodec The codec associated with this field's value.
+     * @param name The name of the field in the data output.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
      */
-    public static <O, K, V> RecordCodecBuilder<O, Map<K, V>> mapField(final Function<O, Map<K, V>> getter, final String name, final Codec<K> keyCodec, final Codec<V> valueCodec) {
+    public static <O, K, V> RecordCodecBuilder<O, Map<K, V>> mapField(final Codec<K> keyCodec, final Codec<V> valueCodec, final String name, final Function<O, Map<K, V>> getter) {
         return Codec.unboundedMap(keyCodec, valueCodec).fieldOf(name).forGetter(getter);
+    }
+
+    /**
+     * Creates an optional map field component as part of a {@link RecordCodecBuilder}.
+     *
+     * @param <O> The type of this field's parent object.
+     * @param <K> The type of this field's key.
+     * @param <V> The type of this field's value.
+     * @param keyCodec The codec associated with this field's key.
+     * @param valueCodec The codec associated with this field's value.
+     * @param name The name of the field in the data output.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
+     */
+    public static <O, K, V> RecordCodecBuilder<O, Optional<Map<K, V>>> optionalMapField(
+            final Codec<K> keyCodec,
+            final Codec<V> valueCodec,
+            final String name,
+            final Function<O, Optional<Map<K, V>>> getter
+    ) {
+        return Codec.unboundedMap(keyCodec, valueCodec).optionalFieldOf(name).forGetter(getter);
     }
 }

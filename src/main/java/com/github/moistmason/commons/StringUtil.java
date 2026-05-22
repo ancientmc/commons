@@ -27,6 +27,9 @@ public final class StringUtil {
     /**
      * Joins the input strings together with spaces in between.
      *
+     * <p> Example: An input array of {@code ["first", "second", "third"]}
+     * will return {@code "first second third"}. </p>
+     *
      * @param inputs The strings.
      * @return The joined strings.
      */
@@ -37,6 +40,9 @@ public final class StringUtil {
     /**
      * Joins the input strings together with spaced commas in between.
      *
+     * <p> Example: An input array of {@code ["first", "second", "third"]}
+     * will return {@code "first, second, third"}. </p>
+     *
      * @param inputs The strings.
      * @return The joined strings.
      */
@@ -45,23 +51,41 @@ public final class StringUtil {
     }
 
     /**
-     * Joins the input strings together with line breaks in between.
+     * Joins the input strings together with new line breaks in between.
+     *
+     * <p> Example: An input array of {@code ["first", "second", "third"]}
+     * will return {@code "first\nsecond\nthird"}. </p>
      *
      * @param inputs The strings.
      * @return The joined strings.
      */
-    public static String lines(final String... inputs) {
+    public static String newLines(final String... inputs) {
         return String.join("\n", inputs);
+    }
+
+    /**
+     * Joins the two input strings together with an arrow symbol {@code ->} separating them.
+     *
+     * <p> Example: inputting the values {@code "foo", "bar"} will return the joined string {@code "foo -> bar"}. </p>
+     *
+     * @param first The first input string.
+     * @param second The second input string.
+     * @return The joined strings.
+     */
+    public static String arrowSeparated(final String first, final String second) {
+        return spaced(first, "->", second);
     }
 
     /**
      * Surrounds the input string with square brackets [].
      *
-     * @param inputs The string.
+     * <p> Example: inputting the string {@code "foo"} will return the string {@code "[foo]"}. </p>
+     *
+     * @param input The input string.
      * @return The bracketed string.
      */
-    public static String brackets(final String inputs) {
-        return "[" + inputs + "]";
+    public static String brackets(final String input) {
+        return "[" + input + "]";
     }
 
     /**
@@ -113,25 +137,27 @@ public final class StringUtil {
      * This method shows that this is an array of the given type. 
      * It then displays the values in the array formatted via {@link Arrays#toString(Object[])}.
      *
+     * @param <T> The array type.
      * @param array The array.
      * @return The formatted string.
-     * @param <T> The array type.
      */
     public static <T> String toString(final T[] array) {
-        return arrayPrefix(array) + " -> " + Arrays.toString(array);
+        final String prefix = spaced("Array of Type:", typeName(array.getClass().getComponentType()));
+        return arrowSeparated(prefix, Arrays.toString(array));
     }
 
     /**
      * {@link Object#toString} formatter for collections.
      * This method shows the subtype of collection (list, set, etc.), and the type iterated within the collection.
-     * It then displays the values in the collection formatted via {@link StringUtil#collectionValues(Collection)}.
+     * It then displays the values in the collection formatted via {@link Arrays#toString(Object[])}.
      *
+     * @param <T> The collection type.
      * @param collection The collection.
      * @return The formatted string.
-     * @param <T> The collection type.
      */
     public static <T> String toString(final Collection<T> collection) {
-        return collectionPrefix(collection) + " -> " + collectionValues(collection);
+        final String prefix = spaced(simpleName(collection), "of Type:", typeName(collection));
+        return arrowSeparated(prefix, Arrays.toString(collection.toArray()));
     }
 
     /**
@@ -139,47 +165,41 @@ public final class StringUtil {
      * This method shows the subtype of map (hash map, tree map, etc.), and the types for both keys and values iterated within the map.
      * It then displays the entries in the map formatted via {@link StringUtil#mapEntries(Map)}.
      *
-     * @param map The map.
-     * @return The formatted string.
      * @param <K> The key type.
      * @param <V> The value type.
+     * @param map The map.
+     * @return The formatted string.
      */
     public static <K, V> String toString(final Map<K, V> map) {
-        return mapPrefix(map) + " -> " + mapEntries(map);
+        final String prefix = spaced(
+                simpleName(map),
+                "with Key Type:", typeName(Util.list(map.keySet()).getFirst()),
+                "and Value Type:", typeName(Util.list(map.values()).getFirst())
+        );
+        return arrowSeparated(prefix, mapEntries(map));
     }
 
     /**
      * {@link Object#toString} formatter for enum classes.
      * This method shows the declaring enum class.
-     * It then displays the constants formatted via {@link StringUtil#enumConstants(Class)}.
+     * It then displays the constants formatted via {@link Class#getEnumConstants()}.
      *
+     * @param <T> The enum type.
      * @param enumClass The enum class.
      * @return The formatted string.
-     * @param <T> The enum type.
      */
     public static <T extends Enum<T>> String toString(final Class<T> enumClass) {
-        return enumPrefix(enumClass) + " -> " + enumConstants(enumClass);
-    }
-
-    /**
-     * Formats the values in a collection as an array with {@link Arrays#toString(Object[])}.
-     * 
-     * @param collection The collection.
-     * @return The formatted string.
-     * @param <T> The collection type.
-     */
-    private static <T> String collectionValues(final Collection<T> collection) {
-        return Arrays.toString(collection.toArray());
+        return arrowSeparated("Enum " + typeName(enumClass), Arrays.toString(enumClass.getEnumConstants()));
     }
 
     /**
      * Formats the entries in a map. Each entry is formatted within square brackets as {@code [K.toString: V.toString]}, 
      * and entries are separated by commas.
      *
-     * @param map The map.
-     * @return The formatted string.
      * @param <K> The key type.
      * @param <V> The value type.
+     * @param map The map.
+     * @return The formatted string.
      */
     private static <K, V> String mapEntries(final Map<K, V> map) {
         String[] entries = map.entrySet().stream()
@@ -193,77 +213,11 @@ public final class StringUtil {
     }
 
     /**
-     * Formats the constants in an enum class as an array with {@link Arrays#toString(Object[])}.
-     *
-     * @param enumClass The enum.
-     * @return The formatted string.
-     * @param <T> The enum type.
-     */
-    private static <T extends Enum<T>> String enumConstants(final Class<T> enumClass) {
-        return Arrays.toString(enumClass.getEnumConstants());
-    }
-
-    /**
-     * Formats the type information for a provided array.
-     *
-     * @param array The array.
-     * @return The formatted type information.
-     * @param <T> The array type.
-     */
-    private static <T> String arrayPrefix(final T[] array) {
-        return spaced("Array of Type:", typeName(array.getClass().getComponentType()));
-    }
-
-    /**
-     * Formats the type information of a collection. 
-     * Shows what subtype of collection it is (list, set, etc.) and the type iterated within the collection.
-     *
-     * @param collection The collection.
-     * @return The formatted type information.
-     * @param <T> The collection type.
-     */
-    private static <T> String collectionPrefix(final Collection<T> collection) {
-        return spaced(
-                simpleName(collection),
-                "of Type:",
-                typeName(collection)
-        );
-    }
-
-    /**
-     * Formats the type information of a map. 
-     * Shows what subtype of map it is (hash map, tree map, etc.) and the key and value types.
-     *
-     * @param map The map.
-     * @return The formatted type information.
-     * @param <K> The key type.
-     * @param <V> The value type.
-     */
-    private static <K, V, M extends Map<K, V>> String mapPrefix(final M map) {
-        return spaced(
-                simpleName(map),
-                "with Key Type:", typeName(Util.list(map.keySet()).getFirst()),
-                "and Value Type:", typeName(Util.list(map.values()).getFirst())
-        );
-    }
-
-    /**
-     * Formats the type information of an enum. 
-     * Shows the declaring class for this enum.
-     *
-     * @param enumClass The enum class.
-     * @return The formatted type information.
-     * @param <T> The enum type.
-     */
-    private static <T extends Enum<T>> String enumPrefix(final Class<T> enumClass) {
-        return "Enum " + typeName(enumClass);
-    }
-
-    /**
      * Gets the simple (package-exclusive) class name of this value's type. Used for collections, maps, and other hierarchies.
+     *
+     * @param <T> The type.
      * @param value The value.
      * @return The simple class name.
-     * @param <T> The type.
      */
     private static <T> String simpleName(final T value) {
         return value.getClass().getSimpleName();
@@ -272,9 +226,9 @@ public final class StringUtil {
     /**
      * Gets the type name of this value.
      *
+     * @param <T> The type.
      * @param value The value.
      * @return The type name.
-     * @param <T> The type.
      */
     public static <T> String typeName(final T value) {
         return value.getClass().getTypeName();
@@ -283,9 +237,9 @@ public final class StringUtil {
     /**
      * Gets the type name of this collection, by checking the type of the first value.
      *
+     * @param <T> The type.
      * @param collection The collection.
      * @return The type name.
-     * @param <T> The type.
      */
     public static <T> String typeName(final Collection<T> collection) {
         return collection.stream().findFirst().map(StringUtil::typeName).orElseThrow();
@@ -293,9 +247,10 @@ public final class StringUtil {
 
     /**
      * Gets the name of this class. Used for types that call another class during type retrieval, like enums and arrays.
+     *
+     * @param <T> The type.
      * @param value The value.
      * @return The class name.
-     * @param <T> The type.
      */
     public static <T> String typeName(final Class<T> value) {
         return value.getTypeName();

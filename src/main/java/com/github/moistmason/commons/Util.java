@@ -45,9 +45,9 @@ public final class Util {
     /**
      * Safe getter for a non-null value. Returns the value if it exists, or throws an exception if it doesn't.
      *
+     * @param <T> The type.
      * @param value The value.
      * @return The same value, if it exists. Throws an exception if not.
-     * @param <T> The type.
      */
     public static <T> T get(final @NonNull T value) {
         return Optional.of(value).orElseThrow();
@@ -60,12 +60,12 @@ public final class Util {
      * <p> This is similar to {@link Util#get(Object)}, but it is used for conditions *other* than whether
      * the value exists, such as if the value is or is not a given data type, or (for numbers) if it's a certain size, etc. </p>
      *
+     * @param <T> The return type.
+     * @param <X> The exception type.
      * @param condition The boolean condition.
      * @param value The value.
      * @param exception The exception thrown.
      * @return The same value, if the condition is met. Throws an exception if not.
-     * @param <T> The return type.
-     * @param <X> The exception type.
      */
     public static <T, X extends Throwable> T get(final boolean condition, final @NonNull T value, final X exception) {
         return condition ? value : elseThrow(exception);
@@ -75,22 +75,22 @@ public final class Util {
      * Safe getter for a potentially null value. Returns the value if it exists, or returns a default value if the intended
      * value does not exist.
      *
+     * @param <T> The return type.
      * @param value The value.
      * @param defaultValue The default value.
      * @return The same value, if it exists. Returns the default value if the intended value doesn't exist.
-     * @param <T> The type.
      */
-    public static <T> T getOrDefault(final @Nullable T value, final @NonNull T defaultValue) {
+    public static <T> T get(final @Nullable T value, final @NonNull T defaultValue) {
         return Optional.ofNullable(value).orElse(defaultValue);
     }
 
     /**
      * Type-specific method that throws an exception. Useful for ternaries that throw if the correct conditions are not met.
      *
-     * @param exception The exception.
-     * @return Nothing.
      * @param <T> The type.
      * @param <X> The exception type.
+     * @param exception The exception.
+     * @return Nothing.
      */
     public static <T, X extends Throwable> T elseThrow(final X exception) {
         throw new RuntimeException(exception);
@@ -99,9 +99,9 @@ public final class Util {
     /**
      * Converts the provided collection to a list.
      *
+     * @param <T> The list type.
      * @param collection The collection.
      * @return The list.
-     * @param <T> The list type.
      */
     public static <T> List<T> list(final Collection<T> collection) {
         return Lists.newArrayList(collection);
@@ -110,9 +110,9 @@ public final class Util {
     /**
      * Converts the provided iterator to a list.
      *
+     * @param <T> The list type.
      * @param iterator The iterator.
      * @return The list.
-     * @param <T> The list type.
      */
     public static <T> List<T> list(final Iterator<T> iterator) {
         return Lists.newArrayList(iterator);
@@ -121,9 +121,9 @@ public final class Util {
     /**
      * Converts the provided enumeration to a list.
      *
+     * @param <T> The list type.
      * @param enumeration The enumeration.
      * @return The list.
-     * @param <T> The list type.
      */
     public static <T> List<T> list(final Enumeration<T> enumeration) {
         return Collections.list(enumeration);
@@ -133,10 +133,10 @@ public final class Util {
      * Creates a filtered stream from a collection based on the given predicate.
      * This is an intermediate method for other functions, similar to regular {@link Stream} functions.
      *
+     * @param <T> The collection type.
      * @param collection The collection.
      * @param predicate The predicate.
      * @return The stream.
-     * @param <T> The collection type.
      */
     public static <T> Stream<T> filteredStream(final Collection<T> collection, final Predicate<T> predicate) {
         return collection.stream().filter(predicate);
@@ -145,10 +145,10 @@ public final class Util {
     /**
      * Filters a list based on the given predicate.
      *
+     * @param <T> The list type.
      * @param list The list.
      * @param predicate The predicate.
      * @return The filtered list.
-     * @param <T> The list type.
      */
     public static <T> List<T> filteredList(final List<T> list, final Predicate<T> predicate) {
         return filteredStream(list, predicate).toList();
@@ -157,10 +157,10 @@ public final class Util {
     /**
      * Finds an object in a list based on the provided predicate.
      *
+     * @param <T> The list type.
      * @param list The list.
      * @param predicate The predicate.
      * @return The expected object. Throws an exception if the object is not present.
-     * @param <T> The list type.
      */
     public static <T> T findAny(final Collection<T> list, final Predicate<T> predicate) {
         return filteredStream(list, predicate).findAny().orElseThrow();
@@ -169,10 +169,10 @@ public final class Util {
     /**
      * Checks if any element in the collection matches the given predicate.
      *
+     * @param <T> The collection type.
      * @param collection The collection.
      * @param predicate The predicate.
      * @return {@code true} if any match in the collection is found.
-     * @param <T> The collection type.
      */
     public static <T> boolean anyMatch(final Collection<T> collection, final Predicate<T> predicate) {
         return collection.stream().anyMatch(predicate);
@@ -181,10 +181,10 @@ public final class Util {
     /**
      * Checks if any element in the array matches the given predicate.
      *
+     * @param <T> The array type.
      * @param array The list.
      * @param predicate The predicate.
      * @return {@code true} if any match in the array is found.
-     * @param <T> The array type.
      */
     public static <T> boolean anyMatch(final T[] array, final Predicate<T> predicate) {
         return Arrays.stream(array).anyMatch(predicate);
@@ -193,10 +193,10 @@ public final class Util {
     /**
      * Checks if no elements in the collection match the given predicate.
      *
+     * @param <T> The collection type.
      * @param collection The collection.
      * @param predicate The predicate.
      * @return {@code true} if no matches in the collection are found.
-     * @param <T> The collection type.
      */
     public static <T> boolean noneMatch(final Collection<T> collection, final Predicate<T> predicate) {
         return collection.stream().noneMatch(predicate);
@@ -205,10 +205,10 @@ public final class Util {
     /**
      * Checks if no elements in the array match the given predicate.
      *
+     * @param <T> The array type.
      * @param array The array.
      * @param predicate The predicate.
      * @return {@code true} if no matches in the array are found.
-     * @param <T> The array type.
      */
     public static <T> boolean noneMatch(final T[] array, final Predicate<T> predicate) {
         return Arrays.stream(array).noneMatch(predicate);
@@ -219,9 +219,9 @@ public final class Util {
      * the size the collection with the {@link Stream#distinct()} stream function applied. A difference in size means the
      * stream filtered out any duplicate elements.
      *
+     * @param <T> The collection type.
      * @param collection The collection.
      * @return {@code true} if the original collection and filtered collection are different sizes.
-     * @param <T> The collection type.
      */
     public static <T> boolean hasDuplicates(final Collection<T> collection) {
         return collection.stream().distinct().count() != collection.size();
@@ -230,10 +230,10 @@ public final class Util {
     /**
      * Gets a list of the keys in a map.
      *
-     * @param map The map.
-     * @return The list of keys.
      * @param <K> The key type.
      * @param <V> The value type.
+     * @param map The map.
+     * @return The list of keys.
      */
     public static <K, V> List<K> keys(final Map<K, V> map) {
         return list(map.keySet());
@@ -287,11 +287,11 @@ public final class Util {
      * Lastly, since this is a BiMap, both the lists and the values must consist of unique elements.
      * Otherwise, another {@link IllegalArgumentException} will be thrown. </p>
      *
+     * @param <K> The key type.
+     * @param <V> The value type.
      * @param keys The key list.
      * @param values The value list.
      * @return The BiMap.
-     * @param <K> The key type.
-     * @param <V> The value type.
      */
     public static <K, V> BiMap<K, V> biMap(final List<K> keys, final List<V> values) {
         if (hasDuplicates(keys)) {
@@ -307,10 +307,10 @@ public final class Util {
      * Inverts a map. Keys become values and vice versa. This is a {@link BiMap} because the map must consist of both unique
      * keys and unique values.
      *
-     * @param original The original map.
-     * @return The inverted map.
      * @param <K> The key type.
      * @param <V> The value type.
+     * @param original The original map.
+     * @return The inverted map.
      */
     public static <K, V> BiMap<V, K> invertedMap(final BiMap<K, V> original) {
         return original.inverse();
@@ -318,13 +318,13 @@ public final class Util {
 
     /**
      * Gets the key in a map from the provided value. This requires a {@link BiMap} because the map must consist of both unique
-     * keys and unique values.
+     * keys and unique values. Normal maps can contain duplicate values, which would prevent this method from working properly.
      *
-     * @param map The map.
-     * @param value The value.
-     * @return The key. An exception is thrown if the value is not present.
      * @param <K> The key type.
      * @param <V> The value type.
+     * @param map The map.
+     * @param value The value.
+     * @return The key. An exception is thrown if the key is not present.
      */
     public static <K, V> K keyFromValue(final BiMap<K, V> map, final V value) {
         final K key = invertedMap(map).get(value);
@@ -334,10 +334,10 @@ public final class Util {
     /**
      * Parses the JSON file path to create a given object using its {@link Codec}.
      *
+     * @param <T> The object type.
      * @param path The file path.
      * @param codec The codec.
      * @return The object.
-     * @param <T> The object type.
      * @throws IOException exception.
      */
     public static <T> T parseJson(final Path path, final Codec<T> codec) throws IOException {
@@ -351,10 +351,10 @@ public final class Util {
     /**
      * Creates an exception of type {@code X} with the provided message.
      *
+     * @param <X> The exception type.
      * @param factory The exception factory.
      * @param message The message.
      * @return The exception.
-     * @param <X> The exception type.
      */
     public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String message) {
         return factory.create(message);
@@ -363,11 +363,11 @@ public final class Util {
     /**
      * Creates an exception of type {@code X} and formats the provided message template with arguments.
      *
+     * @param <X> The exception type.
      * @param factory The exception factory.
      * @param template The message format template.
      * @param args Arguments passed into the template for formatting.
      * @return The exception.
-     * @param <X> The exception type.
      */
     public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String template, final Object... args) {
         final String message = String.format(template, args);
@@ -465,7 +465,7 @@ public final class Util {
 
         /** @return All known names of the OS. */
         public List<String> getAllNames() {
-            List<String> list = new ArrayList<>(Arrays.asList(additionalNames));
+            final List<String> list = new ArrayList<>(Arrays.asList(additionalNames));
             list.addFirst(name);
             return list;
         }
@@ -485,7 +485,7 @@ public final class Util {
      * Factory for exception creation.
      *
      * @param <X> The exception type.
-     */
+     * */
     @FunctionalInterface
     public interface ExceptionFactory<X extends Exception> {
         X create(final String message);

@@ -8,12 +8,12 @@ import org.jspecify.annotations.NonNull;
  *
  * @author moist-mason
  *
- * @param left The left value.
- * @param middle The middle value.
- * @param right The right value.
  * @param <L> The left type.
  * @param <M> The middle type.
  * @param <R> The right type.
+ * @param left The left value.
+ * @param middle The middle value.
+ * @param right The right value.
  */
 public record Triple<L, M, R>(L left, M middle, R right) {
 
@@ -24,8 +24,8 @@ public record Triple<L, M, R>(L left, M middle, R right) {
                 "and Middle Type", StringUtil.typeName(middle),
                 "and Right Type",  StringUtil.typeName(right)
         );
-        final String values = StringUtil.commas(left.toString(), middle.toString(), right.toString());
 
+        final String values = StringUtil.commas(left.toString(), middle.toString(), right.toString());
         return prefix + " -> " + StringUtil.brackets(values);
     }
 }

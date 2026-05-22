@@ -42,8 +42,8 @@ public class Dictionary<T> implements Iterable<Dictionary.Entry<T>> {
     /**
      * Creates an empty dictionary.
      *
-     * @return The dictionary.
      * @param <T> The dictionary value type.
+     * @return The dictionary.
      */
     public static <T> Dictionary<T> create() {
         return new Dictionary<>();
@@ -52,9 +52,9 @@ public class Dictionary<T> implements Iterable<Dictionary.Entry<T>> {
     /**
      * Creates a dictionary with predefined values fed into a consumer.
      *
+     * @param <T> The dictionary value type.
      * @param consumer The consumer.
      * @return The dictionary.
-     * @param <T> The dictionary value type.
      */
     public static <T> Dictionary<T> create(final Consumer<? super Dictionary<T>> consumer) {
         final Dictionary<T> dictionary = new Dictionary<>();
@@ -65,9 +65,9 @@ public class Dictionary<T> implements Iterable<Dictionary.Entry<T>> {
     /**
      * Creates a dictionary from a map.
      *
+     * @param <T> The dictionary value type.
      * @param map The map.
      * @return The dictionary.
-     * @param <T> The dictionary value type.
      */
     public static <T> Dictionary<T> fromMap(final Map<String, T> map) {
         return Dictionary.create(dict -> {
@@ -265,9 +265,9 @@ public class Dictionary<T> implements Iterable<Dictionary.Entry<T>> {
     /**
      * An entry in the dictionary. Similar to {@link Map.Entry}.
      *
+     * @param <T> The value type.
      * @param key The key.
      * @param value The value.
-     * @param <T> The value type.
      */
     public record Entry<T>(String key, T value) { }
 }

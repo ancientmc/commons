@@ -31,9 +31,9 @@ public interface SerializableEnum {
     /**
      * Creates a codec based on the provided values of an enum class.
      *
+     * @param <E> The enum type.
      * @param values The values. of the enum.
      * @return The codec.
-     * @param <E> The enum type.
      */
     static <E extends Enum<E> & SerializableEnum> EnumCodec<E> codec(final E[] values) {
         return new EnumCodec<>(enumResolver(values, nameResolver()));
@@ -43,20 +43,20 @@ public interface SerializableEnum {
      * Converts the enum constant into the value returned in {@link SerializableEnum#getSerializedName()}. If that value is null,
      * the function returns {@link Enum#name()}.
      *
-     * @return The conversion function.
      * @param <E> The enum type.
+     * @return The conversion function.
      */
     static <E extends Enum<E> & SerializableEnum> Function<E, String> nameResolver() {
-        return e -> Util.getOrDefault(e.getSerializedName(), e.name().toLowerCase(Locale.ROOT));
+        return e -> Util.get(e.getSerializedName(), e.name().toLowerCase(Locale.ROOT));
     }
 
     /**
      * Converts the name into its enum constant equivalent.
      *
+     * @param <E> The enum type.
      * @param values The values of the enum.
      * @param nameResolver The resolver function for converting the enum into a string.
      * @return The conversion function.
-     * @param <E> The enum type.
      */
     static <E extends Enum<E> & SerializableEnum> Function<String, E> enumResolver(final E[] values, final Function<E, String> nameResolver) {
         return id -> {
@@ -80,17 +80,18 @@ public interface SerializableEnum {
         /** The internal codec type used for serializing/deserializing. */
         private final Codec<E> codec;
 
+        /** @param enumResolver The enum resolver function, as defined by {@link SerializableEnum#enumResolver(Enum[], Function)}. */
         public EnumCodec(final Function<String, E> enumResolver) {
             this.codec = Codec.stringResolver(SerializableEnum.nameResolver(), enumResolver);
         }
 
         @Override
-        public <T> DataResult<Pair<E, T>> decode(DynamicOps<T> ops, T input) {
+        public <T> DataResult<Pair<E, T>> decode(final DynamicOps<T> ops, final T input) {
             return codec.decode(ops, input);
         }
 
         @Override
-        public <T> DataResult<T> encode(E input, DynamicOps<T> ops, T prefix) {
+        public <T> DataResult<T> encode(final E input, final DynamicOps<T> ops, T prefix) {
             return codec.encode(input, ops, prefix);
         }
     }

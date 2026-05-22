@@ -358,15 +358,13 @@ public final class FileUtil {
 
             Files.walkFileTree(root, new SimpleFileVisitor<>() {
 
-                @NonNull
                 @Override
-                public FileVisitResult preVisitDirectory(@NonNull Path dir, @NonNull BasicFileAttributes attrs) {
+                public @NonNull FileVisitResult preVisitDirectory(@NonNull Path dir, final @NonNull BasicFileAttributes attrs) {
                     return isIncluded(dir, inclusions) ? add(root, dir, paths) : FileVisitResult.SKIP_SUBTREE;
                 }
 
-                @NonNull
                 @Override
-                public FileVisitResult visitFile(@NonNull Path file, @NonNull BasicFileAttributes attrs) {
+                public @NonNull FileVisitResult visitFile(final @NonNull Path file, final @NonNull BasicFileAttributes attrs) {
                     return isIncluded(file, inclusions) ? add(root, file, paths) : FileVisitResult.CONTINUE;
                 }
             });
@@ -374,9 +372,8 @@ public final class FileUtil {
             return new DirectoryTree(root, paths);
         }
 
-        @NonNull
         @Override
-        public Iterator<Path> iterator() {
+        public @NonNull Iterator<Path> iterator() {
             return paths.iterator();
         }
 

@@ -62,7 +62,7 @@ public final class CodecProviders {
      * @return The provider.
      * @param <E> The enum class type.
      */
-    public static <E extends Enum<E> & SerializableEnum> CodecProvider<E> getEnum(final E[] values) {
+    public static <E extends Enum<E> & SerializableEnum> CodecProvider<E> enumCodec(final E[] values) {
         return () -> SerializableEnum.codec(values);
     }
 }

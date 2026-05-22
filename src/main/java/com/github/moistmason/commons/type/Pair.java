@@ -8,10 +8,10 @@ import org.jspecify.annotations.NonNull;
  *
  * @author moist-mason
  *
- * @param left The left value.
- * @param right The right value.
  * @param <L> The left type.
  * @param <R> The right type.
+ * @param left The left value.
+ * @param right The right value.
  */
 public record Pair<L, R>(L left, R right) {
 
