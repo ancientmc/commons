@@ -52,7 +52,7 @@ public interface CodecProvider<A> {
      * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, List<A>> listField(final String name, final Function<O, List<A>> getter) {
-        return Codecs.listField(getter, name, codec());
+        return Codecs.listField(codec(), name, getter);
     }
 
     /**
@@ -63,6 +63,6 @@ public interface CodecProvider<A> {
      * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, Optional<List<A>>> optionalListField(final String name, final Function<O, Optional<List<A>>> getter) {
-        return Codecs.optionalListField(getter, name, codec());
+        return Codecs.optionalListField(codec(), name, getter);
     }
 }

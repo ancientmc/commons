@@ -68,6 +68,7 @@ public final class Codecs {
 
     /**
      * Creates a field component as part of a {@link RecordCodecBuilder}.
+     *
      * @param <O> The type of this field's parent object.
      * @param <A> The type of this field.
      * @param codec The codec associated with this field.
@@ -81,6 +82,7 @@ public final class Codecs {
 
     /**
      * Creates an optional field component as part of a {@link RecordCodecBuilder}.
+     *
      * @param <O> The type of this field's parent object.
      * @param <A> The type of this field.
      * @param codec The codec associated with this field.
@@ -95,28 +97,28 @@ public final class Codecs {
     /**
      * Creates a field list component as part of a {@link RecordCodecBuilder}.
      *
-     * @param getter The method reference to a getter associated with this field.
-     * @param name The name of the field in the data output.
-     * @param codec The codec associated with this field.
-     * @return The {@link RecordCodecBuilder}.
      * @param <O> The type of this field's parent object.
      * @param <A> The type of this field.
+     * @param codec The codec associated with this field.
+     * @param name The name of the field in the data output.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
      */
-    public static <O, A> RecordCodecBuilder<O, List<A>> listField(final Function<O, List<A>> getter, final String name, final Codec<A> codec) {
+    public static <O, A> RecordCodecBuilder<O, List<A>> listField(final Codec<A> codec, final String name, final Function<O, List<A>> getter) {
         return codec.listOf().fieldOf(name).forGetter(getter);
     }
 
     /**
      * Creates an optional field list component as part of a {@link RecordCodecBuilder}.
      *
-     * @param getter The method reference to a getter associated with this field.
-     * @param name The name of the field in the data output.
-     * @param codec The codec associated with this field.
-     * @return The {@link RecordCodecBuilder}.
      * @param <O> The type of this field's parent object.
      * @param <A> The type of this field.
+     * @param codec The codec associated with this field.
+     * @param name The name of the field in the data output.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
      */
-    public static <O, A> RecordCodecBuilder<O, Optional<List<A>>> optionalListField(final Function<O, Optional<List<A>>> getter, final String name, final Codec<A> codec) {
+    public static <O, A> RecordCodecBuilder<O, Optional<List<A>>> optionalListField(final Codec<A> codec, final String name, final Function<O, Optional<List<A>>> getter) {
         return codec.listOf().optionalFieldOf(name).forGetter(getter);
     }
 
