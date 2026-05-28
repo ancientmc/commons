@@ -70,6 +70,26 @@ public final class Codecs {
     }
 
     /**
+     * Creates a field component as part of a {@link RecordCodecBuilder} with a default value.
+     *
+     * @param <O> The type of this field's parent object.
+     * @param <A> The type of this field.
+     * @param codec The codec associated with this field.
+     * @param name The name of the field in the data output.
+     * @param defaultValue The default value for this field if no other value is explicitly defined.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
+     */
+    public static <O, A> RecordCodecBuilder<O, A> defaultableField(
+            final Codec<A> codec,
+            final String name,
+            final A defaultValue,
+            final Function<O, A> getter
+    ) {
+        return codec.optionalFieldOf(name, defaultValue).forGetter(getter);
+    }
+
+    /**
      * Creates an optional field component as part of a {@link RecordCodecBuilder}.
      *
      * @param <O> The type of this field's parent object.
@@ -98,6 +118,26 @@ public final class Codecs {
     }
 
     /**
+     * Creates a field list component as part of a {@link RecordCodecBuilder} with a default value.
+     *
+     * @param <O> The type of this field's parent object.
+     * @param <A> The type of this field.
+     * @param codec The codec associated with this field.
+     * @param name The name of the field in the data output.
+     * @param defaultValue The default value for this field if no other value is explicitly defined.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The {@link RecordCodecBuilder}.
+     */
+    public static <O, A> RecordCodecBuilder<O, List<A>> defaultableListField(
+            final Codec<A> codec,
+            final String name,
+            final List<A> defaultValue,
+            final Function<O, List<A>> getter
+    ) {
+        return codec.listOf().optionalFieldOf(name, defaultValue).forGetter(getter);
+    }
+
+    /**
      * Creates an optional field list component as part of a {@link RecordCodecBuilder}.
      *
      * @param <O> The type of this field's parent object.
@@ -123,7 +163,12 @@ public final class Codecs {
      * @param getter The method reference to a getter associated with this field.
      * @return The {@link RecordCodecBuilder}.
      */
-    public static <O, K, V> RecordCodecBuilder<O, Map<K, V>> mapField(final Codec<K> keyCodec, final Codec<V> valueCodec, final String name, final Function<O, Map<K, V>> getter) {
+    public static <O, K, V> RecordCodecBuilder<O, Map<K, V>> mapField(
+            final Codec<K> keyCodec,
+            final Codec<V> valueCodec,
+            final String name,
+            final Function<O, Map<K, V>> getter
+    ) {
         return Codec.unboundedMap(keyCodec, valueCodec).fieldOf(name).forGetter(getter);
     }
 

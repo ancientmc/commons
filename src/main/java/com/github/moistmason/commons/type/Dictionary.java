@@ -224,9 +224,8 @@ public class Dictionary<T> implements Iterable<Dictionary.Entry<T>> {
         }
     }
 
-    @NonNull
     @Override
-    public Iterator<Entry<T>> iterator() {
+    public @NonNull Iterator<Entry<T>> iterator() {
         return entries.iterator();
     }
 

@@ -24,8 +24,7 @@ public record Triple<L, M, R>(L left, M middle, R right) {
                 "and Middle Type", StringUtil.typeName(middle),
                 "and Right Type",  StringUtil.typeName(right)
         );
-
-        final String values = StringUtil.commas(left.toString(), middle.toString(), right.toString());
+        final String values = StringUtil.commas(left, middle, right);
         return prefix + " -> " + StringUtil.brackets(values);
     }
 }

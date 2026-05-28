@@ -356,8 +356,8 @@ public final class Util {
      * @param message The message.
      * @return The exception.
      */
-    public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String message) {
-        return factory.create(message);
+    public static <X extends Exception> X exception(final Function<String, X> factory, final String message) {
+        return factory.apply(message);
     }
 
     /**
@@ -369,7 +369,7 @@ public final class Util {
      * @param args Arguments passed into the template for formatting.
      * @return The exception.
      */
-    public static <X extends Exception> X exception(final ExceptionFactory<X> factory, final String template, final Object... args) {
+    public static <X extends Exception> X exception(final Function<String, X> factory, final String template, final Object... args) {
         final String message = String.format(template, args);
         return exception(factory, message);
     }
@@ -394,6 +394,17 @@ public final class Util {
      */
     public static IllegalArgumentException illegalArgException(final String template, final Object... args) {
         return exception(IllegalArgumentException::new, template, args);
+    }
+
+    /**
+     * Creates a {@link NoSuchElementException} and formats the provided message template with arguments.
+     *
+     * @param template The message format template.
+     * @param args Arguments passed into the template for formatting.
+     * @return The exception.
+     */
+    public static NoSuchElementException noSuchElementException(final String template, final Object... args) {
+        return exception(NoSuchElementException::new, template, args);
     }
 
     /**
@@ -479,15 +490,5 @@ public final class Util {
         private boolean contains(final String input) {
             return StringUtil.containsAny(getAllNames(), input);
         }
-    }
-
-    /**
-     * Factory for exception creation.
-     *
-     * @param <X> The exception type.
-     */
-    @FunctionalInterface
-    public interface ExceptionFactory<X extends Exception> {
-        X create(final String message);
     }
 }

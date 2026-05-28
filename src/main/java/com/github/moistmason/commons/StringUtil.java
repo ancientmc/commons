@@ -27,7 +27,7 @@ public final class StringUtil {
     /**
      * Joins the input strings together with spaces in between.
      *
-     * <p> Example: An input array of {@code ["first", "second", "third"]}
+     * <p> Example: An input string array of {@code ["first", "second", "third"]}
      * will return {@code "first second third"}. </p>
      *
      * @param inputs The strings.
@@ -38,16 +38,44 @@ public final class StringUtil {
     }
 
     /**
+     * Converts the input values to a string array and joins them together with spaces in between.
+     *
+     * <p> Example: An input integer array of {@code [1, 2, 3]}
+     * will return {@code "1 2 3"}. </p>
+     *
+     * @param inputs The values.
+     * @return The joined string.
+     */
+    public static String spaced(final Object... inputs) {
+        final String[] array = stringArray(inputs);
+        return spaced(array);
+    }
+
+    /**
      * Joins the input strings together with spaced commas in between.
      *
-     * <p> Example: An input array of {@code ["first", "second", "third"]}
+     * <p> Example: An input string array of {@code ["first", "second", "third"]}
      * will return {@code "first, second, third"}. </p>
      *
      * @param inputs The strings.
-     * @return The joined strings.
+     * @return The joined string.
      */
     public static String commas(final String... inputs) {
         return String.join(", ", inputs);
+    }
+
+    /**
+     * Converts the input values to a string array and joins them together with spaced commas in between.
+     *
+     * <p> Example: An input integer array of {@code [1, 2, 3]}
+     * will return {@code "1, 2, 3"}. </p>
+     *
+     * @param inputs The values.
+     * @return The joined string.
+     */
+    public static String commas(final Object... inputs) {
+        final String[] array = stringArray(inputs);
+        return commas(array);
     }
 
     /**
@@ -57,10 +85,24 @@ public final class StringUtil {
      * will return {@code "first\nsecond\nthird"}. </p>
      *
      * @param inputs The strings.
-     * @return The joined strings.
+     * @return The joined string.
      */
     public static String newLines(final String... inputs) {
         return String.join("\n", inputs);
+    }
+
+    /**
+     * Converts the input values to a string array and joins them together with new line breaks in between.
+     *
+     * <p> Example: An input array of {@code [1, 2, 3]}
+     * will return {@code "first\nsecond\nthird"}. </p>
+     *
+     * @param inputs The values.
+     * @return The joined string.
+     */
+    public static String newLines(final Object... inputs) {
+        final String[] array = stringArray(inputs);
+        return newLines(array);
     }
 
     /**
@@ -77,15 +119,40 @@ public final class StringUtil {
     }
 
     /**
-     * Surrounds the input string with square brackets [].
+     * Converts the two input values into  with an arrow symbol {@code ->} separating them.
+     *
+     * <p> Example: inputting the values {@code 3, 4} will return the joined string {@code "3 -> 4"}. </p>
+     *
+     * @param first The first input string.
+     * @param second The second input string.
+     * @return The joined strings.
+     */
+    public static String arrowSeparated(final Object first, final Object second) {
+        return spaced(first, "->", second);
+    }
+
+    /**
+     * Surrounds the input value's string representation with square brackets [].
      *
      * <p> Example: inputting the string {@code "foo"} will return the string {@code "[foo]"}. </p>
      *
-     * @param input The input string.
+     * @param input The input value.
      * @return The bracketed string.
      */
-    public static String brackets(final String input) {
+    public static String brackets(final Object input) {
         return "[" + input + "]";
+    }
+
+    /**
+     * Converts the input values into a string array. Useful as an intermediate step for string concatenation.
+     *
+     * @param inputs The input values.
+     * @return The string array.
+     */
+    public static String[] stringArray(final Object... inputs) {
+        return Arrays.stream(inputs)
+                .map(String::valueOf)
+                .toArray(String[]::new);
     }
 
     /**
@@ -208,7 +275,6 @@ public final class StringUtil {
                         e.getValue().toString()))
                 .map(StringUtil::brackets)
                 .toArray(String[]::new);
-
         return commas(entries);
     }
 

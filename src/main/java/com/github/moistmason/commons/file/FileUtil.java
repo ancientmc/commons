@@ -40,6 +40,19 @@ public final class FileUtil {
     }
 
     /**
+     * Creates the provided file (and its parent directory) if it doesn't exist.
+     *
+     * @param file The file.
+     * @throws IOException exception.
+     */
+    public static void createFile(final Path file) throws IOException{
+        if (!exists(file)) {
+            createParentDirectory(file);
+            Files.createFile(file);
+        }
+    }
+
+    /**
      * Creates the provided directory (and any parent directory) if it doesn't exist.
      *
      * @param directory The directory.

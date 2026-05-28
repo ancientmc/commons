@@ -1,5 +1,7 @@
 package com.github.moistmason.commons.codec;
 
+import com.github.moistmason.commons.math.DoubleRange;
+import com.github.moistmason.commons.math.IntRange;
 import com.github.moistmason.commons.type.Dictionary;
 import com.github.moistmason.commons.type.SerializableEnum;
 import com.mojang.serialization.Codec;
@@ -43,6 +45,23 @@ public final class CodecProviders {
 
     /** Provides codec builders for paths. */
     public static final CodecProvider<Path> PATH = () -> Codecs.PATH;
+
+    /** Provides codec builders for {@link IntRange}s. */
+    public static final CodecProvider<IntRange> INT_RANGE = () -> IntRange.CODEC;
+
+    /** Provides codec builders for {@link DoubleRange}s. */
+    public static final CodecProvider<DoubleRange> DOUBLE_RANGE = () -> DoubleRange.CODEC;
+
+    /**
+     * Provides codec builders for the given codec.
+     *
+     * @param codec The codec.
+     * @return The provider.
+     * @param <T> The codec type.
+     */
+    public static <T> CodecProvider<T> provider(final Codec<T> codec) {
+        return () -> codec;
+    }
 
     /**
      * Provides codec builders for a {@link Dictionary}.

@@ -25,22 +25,35 @@ public interface CodecProvider<A> {
     /**
      * Provides a field component builder for this codec type. Used in building record-like codecs.
      *
+     * @param <O> The type of the parent object of this codec.
      * @param name The name of the field.
      * @param getter The method reference to a getter associated with this field.
      * @return The field component.
-     * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, A> field(final String name, final Function<O, A> getter) {
         return Codecs.field(codec(), name, getter);
     }
 
     /**
+     * Provides a field component builder for this codec type with a default value. Used in building record-like codecs.
+     *
+     * @param <O> The type of the parent object of this codec.
+     * @param name The name of the field.
+     * @param defaultValue The default value for this field if no other value is explicitly defined.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The field component.
+     */
+    default <O> RecordCodecBuilder<O, A> defaultableField(final String name, final A defaultValue, final Function<O, A> getter) {
+        return Codecs.defaultableField(codec(), name, defaultValue, getter);
+    }
+
+    /**
      * Provides an optional field component builder for this codec type. Used in building record-like codecs.
      *
+     * @param <O> The type of the parent object of this codec.
      * @param name The name of the field.
      * @param getter The method reference to a getter associated with this field.
      * @return The field component.
-     * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, Optional<A>> optionalField(final String name, final Function<O, Optional<A>> getter) {
         return Codecs.optionalField(codec(), name, getter);
@@ -49,22 +62,35 @@ public interface CodecProvider<A> {
     /**
      * Provides a field list component builder for this codec type. Used in building record-like codecs.
      *
+     * @param <O> The type of the parent object of this codec.
      * @param name The name of the field.
      * @param getter The method reference to a getter associated with this field.
      * @return The field component.
-     * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, List<A>> listField(final String name, final Function<O, List<A>> getter) {
         return Codecs.listField(codec(), name, getter);
     }
 
     /**
+     * Provides a field list component builder for this codec type with a default value. Used in building record-like codecs.
+     *
+     * @param <O> The type of the parent object of this codec.
+     * @param name The name of the field.
+     * @param defaultValue The default value for this field if no other value is explicitly defined.
+     * @param getter The method reference to a getter associated with this field.
+     * @return The field component.
+     */
+    default <O> RecordCodecBuilder<O, List<A>> defaultableListField(final String name, final List<A> defaultValue, final Function<O, List<A>> getter) {
+        return Codecs.defaultableListField(codec(), name, defaultValue, getter);
+    }
+
+    /**
      * Provides an optional field list component builder for this codec type. Used in building record-like codecs.
      *
+     * @param <O> The type of the parent object of this codec.
      * @param name The name of the field.
      * @param getter The method reference to a getter associated with this field.
      * @return The field component.
-     * @param <O> The type of the parent object of this codec.
      */
     default <O> RecordCodecBuilder<O, Optional<List<A>>> optionalListField(final String name, final Function<O, Optional<List<A>>> getter) {
         return Codecs.optionalListField(codec(), name, getter);
