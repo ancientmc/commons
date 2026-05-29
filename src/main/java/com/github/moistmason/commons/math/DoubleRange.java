@@ -47,7 +47,7 @@ public record DoubleRange(double min, double max, double increment) {
      * @param increment The increment.
      * @return The range.
      */
-    public static DoubleRange ofAll(final int increment) {
+    public static DoubleRange ofAll(final double increment) {
         return new DoubleRange(Double.MIN_VALUE, Double.MAX_VALUE, increment);
     }
 
